@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "started_at": null,
+  "completed_phases": [],
+  "config": {
+    "instance_name": null,
+    "key_name": null,
+    "static_ip_name": null,
+    "bucket_name": null,
+    "iam_user": null,
+    "server_ip": null,
+    "pem_path": null,
+    "bot_username": null
+  },
+  "notes": "Written by Claude during install. Do not edit manually."
+}
