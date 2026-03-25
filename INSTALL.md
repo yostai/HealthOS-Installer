@@ -60,11 +60,21 @@ If anything is missing:
 - Telegram: "Download it free from the App Store or Google Play"
 - Anthropic API key: "Get one free at console.anthropic.com → sign up → API Keys → Create key"
 
+**Tell the user upfront:**
+> "During this install, macOS will pop up permission dialogs. When you see them:
+> - **'claude would like to access files in your Downloads folder'** → click **Allow**
+> - **'Allow once' / 'Always allow for project (local)'** → click **Always allow for project (local)**
+>
+> These are expected — Claude needs these to run the installer."
+
 ---
 
 ## Phase 0: Collect All Inputs
 
 **Goal:** Gather everything needed before starting. No AWS work yet.
+
+**Before asking, tell the user:**
+> "I need a few details before we start. Don't do anything yet — just answer the questions. You can answer all at once (e.g., '1. Yes, 2. healthos-personal, 3. sk-ant-...') or one by one. I'll tell you when to take action."
 
 Ask the user the following (can ask all at once in a friendly, conversational message):
 
@@ -114,15 +124,14 @@ Tell the user:
 You need an AWS account to host HealthOS. Good news: your first 3 months of server time are **completely free**.
 
 **Steps:**
-1. Go to **aws.amazon.com** → click "Create an AWS Account"
+1. Go to **aws.amazon.com** → click "Create an AWS Account" (may say "Sign up for AWS" — same thing)
 2. Enter your email and choose an account name (e.g., "My HealthOS")
 3. Create a password
-4. Choose **"Personal"** account type
-5. Enter your contact info
-6. Enter a credit card (required, but won't be charged for 90 days)
-7. Verify your phone number
-8. Choose **"Basic support — Free"**
-9. Sign in to the AWS Console
+4. Enter your contact info (AWS may skip the account type screen — that's fine)
+5. Enter a credit card (required, but won't be charged for 90 days)
+6. Verify your phone number
+7. Choose the **Free** support plan (may appear as "Basic support — Free" or "Free (6 months)")
+8. Sign in to the AWS Console
 
 **When done:** Tell me "AWS account ready" and I'll continue.
 ---
@@ -149,9 +158,17 @@ Wait for confirmation, then re-run the script.
 
 **If credentials not configured:** Proceed to Human Step 2.
 
-**If `PREFLIGHT_OK=true`:** Note the AWS Account ID. Update the S3 bucket name to `healthos-backup-{account-id}`.
+**If `PREFLIGHT_OK=true`:** Show the user the Account ID and **verify it's the right account:**
+> "I found existing AWS credentials on your Mac. They point to account: **[ACCOUNT_ID]**
+> Is this the AWS account you just created for HealthOS? (yes/no)"
 
-Mark `phase-1-preflight` complete.
+- **Yes** → proceed. Update S3 bucket name to `healthos-backup-{account-id}`.
+- **No** → existing CLI is configured for a different account (personal/work). Tell the user:
+  > "We need to point the CLI at your new HealthOS account. Go to your new AWS account → IAM → create a user `healthos-installer` with AdministratorAccess → create an access key → run `aws configure` in your terminal and paste the new credentials."
+  > "Tell me when done and I'll verify."
+  Re-run `01-preflight.sh` and confirm the correct Account ID before proceeding.
+
+Mark `phase-1-preflight` complete only after account is confirmed correct.
 
 ---
 

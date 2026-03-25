@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthOS Setup Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1a1a2e;
+      background: #fff;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    /* ── COVER ── */
+    .cover {
+      text-align: center;
+      padding: 60px 0 48px;
+      border-bottom: 2px solid #e8f4f0;
+      margin-bottom: 48px;
+    }
+    .cover .logo {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+    .cover h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0d6e5a;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .cover .subtitle {
+      font-size: 17px;
+      color: #555;
+      margin-bottom: 24px;
+    }
+    .cover .time-badge {
+      display: inline-block;
+      background: #f0faf6;
+      border: 1px solid #b2ddd0;
+      color: #0d6e5a;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-header {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #0d6e5a;
+      margin: 48px 0 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #d4ede6;
+    }
+
+    /* ── CHECKLIST TABLE ── */
+    .checklist {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .checklist th {
+      background: #0d6e5a;
+      color: #fff;
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    .checklist th:last-child { text-align: center; }
+    .checklist td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #eef6f3;
+      vertical-align: middle;
+    }
+    .checklist tr:last-child td { border-bottom: none; }
+    .checklist tr:nth-child(even) td { background: #fafffe; }
+    .checklist td:first-child { font-weight: 600; color: #1a1a2e; width: 30%; }
+    .checklist td:last-child { text-align: center; font-size: 18px; }
+    .checklist-note {
+      font-size: 12px;
+      color: #777;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex;
+      gap: 24px;
+      margin: 16px 0 32px;
+      font-size: 13px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-item .badge {
+      font-size: 17px;
+    }
+    .legend-item span { color: #555; }
+
+    /* ── STEPS ── */
+    .step {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 32px;
+      align-items: flex-start;
+    }
+    .step-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      background: #0d6e5a;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-title .role-badge {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 2px 10px;
+      border-radius: 12px;
+    }
+    .badge-you {
+      background: #e8f4f0;
+      color: #0d6e5a;
+      border: 1px solid #b2ddd0;
+    }
+    .badge-ai {
+      background: #fff3e0;
+      color: #e65100;
+      border: 1px solid #ffcc80;
+    }
+    .step-body {
+      font-size: 14px;
+      color: #333;
+      margin-top: 8px;
+      line-height: 1.7;
+    }
+    .step-body ol, .step-body ul {
+      margin: 8px 0 8px 20px;
+    }
+    .step-body li { margin-bottom: 4px; }
+
+    /* ── ACTION LINK ── */
+    .action-link {
+      display: inline-block;
+      background: #0d6e5a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+
+    /* ── WAIT BOX ── */
+    .wait-box {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #5d4037;
+    }
+    .wait-box strong { color: #e65100; }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: #f0faf6;
+      border: 1px solid #b2ddd0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #1a4a3a;
+    }
+    .info-box strong { color: #0d6e5a; }
+
+    /* ── AI PHASE BLOCK ── */
+    .ai-phase {
+      background: #fafffe;
+      border: 1px solid #d4ede6;
+      border-left: 4px solid #0d6e5a;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .ai-phase-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0d6e5a;
+      margin-bottom: 4px;
+    }
+    .ai-phase-desc {
+      font-size: 13px;
+      color: #444;
+      margin-bottom: 8px;
+    }
+    .ai-phase-time {
+      font-size: 12px;
+      color: #888;
+      font-style: italic;
+    }
+    .ai-phase-you {
+      background: #fff8e1;
+      border: 1px solid #ffcc80;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #5d4037;
+      margin-top: 10px;
+    }
+    .ai-phase-you strong { color: #e65100; }
+
+    /* ── COMPLETE BOX ── */
+    .complete-box {
+      background: #0d6e5a;
+      color: #fff;
+      border-radius: 12px;
+      padding: 32px 36px;
+      text-align: center;
+      margin-top: 48px;
+    }
+    .complete-box .big-emoji { font-size: 48px; margin-bottom: 12px; }
+    .complete-box h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .complete-box p { font-size: 14px; opacity: 0.88; line-height: 1.7; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #e8f4f0;
+      margin: 40px 0;
+    }
+
+    /* ── PRIVACY NOTICE ── */
+    .privacy-notice {
+      background: #f7fbff;
+      border: 1px solid #cce0f5;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+    .privacy-notice h3 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #1a6091;
+      margin-bottom: 12px;
+    }
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .privacy-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+    }
+    .privacy-item .p-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .privacy-item .p-text strong { display: block; color: #1a1a2e; font-size: 13px; }
+    .privacy-item .p-text span { color: #666; font-size: 12px; line-height: 1.5; }
+
+    /* ── EULA ── */
+    .eula {
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-top: 40px;
+    }
+    .eula h3 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 12px;
+    }
+    .eula p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .eula p:last-child { margin-bottom: 0; }
+    .eula strong { color: #333; }
+
+    /* ── PRINT ── */
+    @media print {
+      body { padding: 32px 32px; font-size: 13px; }
+      .cover { padding: 40px 0 36px; }
+      .cover h1 { font-size: 26px; }
+      .step { margin-bottom: 24px; }
+      .section-header { margin-top: 36px; }
+      .complete-box { margin-top: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="logo">🌿</div>
+    <h1>HealthOS Setup Guide</h1>
+    <p class="subtitle">Your personal AI health coach — up and running in about 30 minutes.</p>
+    <span class="time-badge">⏱ About 30 minutes &nbsp;|&nbsp; No technical experience needed</span>
+  </div>
+
+
+  <!-- PRIVACY NOTICE -->
+  <div class="privacy-notice">
+    <h3>🔒 Your Data is Private &amp; Protected</h3>
+    <div class="privacy-grid">
+      <div class="privacy-item">
+        <div class="p-icon">☁️</div>
+        <div class="p-text">
+          <strong>AWS (Your Server)</strong>
+          <span>Your health data lives in your own private AWS account — not ours. Only you have access to it.</span>
+        </div>
+      </div>
+      <div class="privacy-item">
+        <div class="p-icon">💬</div>
+        <div class="p-text">
+          <strong>Telegram</strong>
+          <span>Messages between you and your bot are private to your account. Telegram does not sell your data.</span>
+        </div>
+      </div>
+      <div class="privacy-item">
+        <div class="p-icon">🤖</div>
+        <div class="p-text">
+          <strong>Anthropic (Claude AI)</strong>
+          <span>Conversations are processed by Anthropic's API under their privacy policy. API usage is not used to train models by default.</span>
+        </div>
+      </div>
+      <div class="privacy-item">
+        <div class="p-icon">🌿</div>
+        <div class="p-text">
+          <strong>HealthOS / Yost AI</strong>
+          <span>We never see your health data. Your server, your credentials, your data — we only provide the software.</span>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 12px; color: #666; margin-top: 14px; line-height: 1.6;">
+      Each platform above maintains its own privacy policy, which may change over time. It is your responsibility to review the current privacy practices of AWS, Telegram, and Anthropic before entrusting them with your personal data. Links to their policies are available on each platform's website.
+    </p>
+  </div>
+
+  <!-- WHAT YOU'LL NEED -->
+  <div class="section-header">What You'll Need</div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="badge">👍🏻</span><span><strong>You do this</strong> — a quick action on your end</span></div>
+    <div class="legend-item"><span class="badge">❌</span><span><strong>AI Guided</strong> — Claude handles it automatically</span></div>
+  </div>
+
+  <table class="checklist">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Notes</th>
+        <th>Who</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Claude desktop app</td>
+        <td>Free download from claude.ai — Step 2 below walks you through it</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>Anthropic API key</td>
+        <td>Free to get started — Step 3 walks you through it</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>Telegram app</td>
+        <td>Free — install on your phone or desktop before starting</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>Credit card for AWS</td>
+        <td>Required to create an account — <strong>your first 3 months are completely free</strong></td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>AWS account</td>
+        <td>Claude will walk you through creating one step by step</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>Your cloud server</td>
+        <td>Claude creates, configures, and secures it automatically</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>HealthOS bot</td>
+        <td>Claude sets it up and launches it — you'll just name it</td>
+        <td>❌</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="checklist-note">Everything marked ❌ happens automatically. You'll watch it happen — no action needed.</p>
+
+
+  <hr class="divider">
+
+
+  <!-- PART 1 -->
+  <div class="section-header">Part 1 — Get Ready (Before You Open Claude)</div>
+
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+      <div class="step-title">
+        Download the HealthOS Installer
+        <span class="role-badge badge-you">👍🏻 You do this</span>
+      </div>
+      <div class="step-body">
+        <ol>
+          <li>Click the button below to open the HealthOS Installer page on GitHub</li>
+          <li>Click the green <strong>Code</strong> button near the top right</li>
+          <li>Click <strong>Download ZIP</strong></li>
+          <li>Open your Downloads folder — find the file called <strong>HealthOS-Installer-main.zip</strong></li>
+          <li>Double-click it to unzip — a folder called <strong>HealthOS-Installer-main</strong> will appear</li>
+        </ol>
+        <a class="action-link" href="https://github.com/yostai/HealthOS-Installer" target="_blank">→ Open HealthOS Installer on GitHub</a>
+        <div class="wait-box">
+          <strong>✋ Pause here.</strong> Make sure the folder is fully unzipped before moving on.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+      <div class="step-title">
+        Install the Claude Desktop App
+        <span class="role-badge badge-you">👍🏻 You do this</span>
+      </div>
+      <div class="step-body">
+        <p>HealthOS is installed by Claude — the AI assistant. You'll need the desktop app (not just the website).</p>
+        <ol style="margin-top: 10px;">
+          <li>Go to <strong>claude.ai</strong> and click <strong>Download</strong></li>
+          <li>Open the downloaded file and follow the install steps</li>
+          <li>Open Claude — you should see three tabs at the top: <strong>Chat, Cowork, Code</strong></li>
+        </ol>
+        <div class="info-box">
+          <strong>Already have Claude?</strong> Make sure it's up to date — open it and check for any update prompts.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 3 -->
+  <div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+      <div class="step-title">
+        Get Your Anthropic API Key
+        <span class="role-badge badge-you">👍🏻 You do this</span>
+      </div>
+      <div class="step-body">
+        <p>This is a password that lets HealthOS use Claude's AI. It takes about 2 minutes to get.</p>
+        <ol style="margin-top: 10px;">
+          <li>Go to <strong>console.anthropic.com</strong> and sign up (it's free)</li>
+          <li>Once logged in, click <strong>API Keys</strong> in the left sidebar</li>
+          <li>Click <strong>Create Key</strong> — give it any name (e.g., "HealthOS")</li>
+          <li>Copy the key — it looks like: <code style="background:#f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 12px;">sk-ant-api03-...</code></li>
+          <li>Paste it somewhere safe (Notes app, etc.) — you'll need it in a few minutes</li>
+        </ol>
+        <div class="wait-box">
+          <strong>✋ Don't skip this.</strong> Claude will ask for this key during setup — have it ready before you start.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+      <div class="step-title">
+        Install Telegram
+        <span class="role-badge badge-you">👍🏻 You do this</span>
+      </div>
+      <div class="step-body">
+        <p>HealthOS sends your daily health check-ins through Telegram. It's free and takes 2 minutes to set up.</p>
+        <ol style="margin-top: 10px;">
+          <li>Download Telegram from the <strong>App Store</strong> (iPhone) or <strong>Google Play</strong> (Android) — or at <strong>telegram.org</strong> for desktop</li>
+          <li>Create an account with your phone number</li>
+          <li>That's it — Claude will help you set up the bot inside Telegram during the install</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+
+  <hr class="divider">
+
+
+  <!-- PART 2 -->
+  <div class="section-header">Part 2 — Start the Install</div>
+
+
+  <!-- STEP 5 -->
+  <div class="step">
+    <div class="step-number">5</div>
+    <div class="step-content">
+      <div class="step-title">
+        Open the Installer Folder in Claude
+        <span class="role-badge badge-you">👍🏻 You do this</span>
+      </div>
+      <div class="step-body">
+        <ol>
+          <li>Open the <strong>Claude desktop app</strong></li>
+          <li>Click the <strong>Code</strong> tab at the top of the window</li>
+          <li>Look for the <strong>"Set workspace folder"</strong> option — it's located below the chat input box. If you already have a session open, scroll down to the bottom of the chat area to find it.</li>
+          <li>Navigate to your Downloads folder and select the <strong>HealthOS-Installer-main</strong> folder you unzipped in Step 1</li>
+          <li>Click <strong>Open</strong></li>
+          <li>Claude will ask you to <strong>Trust this workspace</strong> — click <strong>Trust Workspace</strong></li>
+        </ol>
+        <div class="info-box">
+          The workspace is now set. Claude has access to the installer files and is ready for the next step.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 6 -->
+  <div class="step">
+    <div class="step-number">6</div>
+    <div class="step-content">
+      <div class="step-title">
+        Type /install and Press Enter
+        <span class="role-badge badge-you">👍🏻 You do this</span>
+      </div>
+      <div class="step-body">
+        <p>In the Claude chat box at the bottom, type exactly:</p>
+        <p style="font-family: monospace; background: #f0f0f0; padding: 10px 16px; border-radius: 6px; margin: 10px 0; font-size: 15px; letter-spacing: 1px;">/install</p>
+        <p>Then press <strong>Enter</strong>.</p>
+        <div class="wait-box">
+          <strong>⏳ Claude is now in charge.</strong> It will ask you a few questions before doing anything on AWS. You can answer all questions at once or one by one — Claude will tell you exactly what to do at each step.
+        </div>
+        <div class="info-box">
+          <strong>📋 macOS permission popups:</strong> During the install, macOS may ask if Claude can access your files or run commands. When you see these:
+          <ul style="margin: 8px 0 0 0;">
+            <li><strong>"claude would like to access files in your Downloads folder"</strong> → click <strong>Allow</strong></li>
+            <li><strong>"Allow once" / "Always allow for project (local)"</strong> → click <strong>Always allow for project (local)</strong></li>
+          </ul>
+          These are expected and safe — Claude needs them to run the installer.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <hr class="divider">
+
+
+  <!-- PART 3 -->
+  <div class="section-header">Part 3 — Claude Takes Over</div>
+
+  <p style="font-size: 14px; color: #555; margin-bottom: 24px;">From here, Claude drives the install. You'll be asked to do a few short tasks along the way. Here's what to expect — in order.</p>
+
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase A — Claude Asks You Questions</div>
+    <div class="ai-phase-desc">Claude will ask for your instance name (you can use the default it suggests), your Anthropic API key, and your GitHub repo URL. Answer each question and press Enter.</div>
+    <div class="ai-phase-time">⏱ About 2 minutes of back-and-forth</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Answer Claude's questions. Have your Anthropic API key from Step 3 ready to paste.</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase B — Create Your AWS Account <span style="font-size:12px; font-weight:400; color:#888;">(skip if you already have one)</span></div>
+    <div class="ai-phase-desc">AWS is the cloud platform where your HealthOS server will live. Claude will give you exact step-by-step instructions to create a free account — you just follow along on the AWS website.</div>
+    <div class="ai-phase-time">⏱ About 5 minutes &nbsp;|&nbsp; Your first 3 months are free</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Follow Claude's instructions on aws.amazon.com. When you're done, tell Claude "AWS account ready."</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase C — Create an AWS Access Key</div>
+    <div class="ai-phase-desc">This gives Claude permission to set up your server. Claude will tell you exactly where to click inside your AWS account. You'll copy two values and run one command in your Mac terminal.</div>
+    <div class="ai-phase-time">⏱ About 3 minutes</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Follow Claude's instructions. It will tell you what to copy and paste — nothing to figure out on your own.</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase D — Claude Builds Your Server ❌</div>
+    <div class="ai-phase-desc">Claude creates your cloud server, assigns it a permanent address, and configures the firewall. Nothing to do here — just watch.</div>
+    <div class="ai-phase-time">⏱ About 3–5 minutes</div>
+    <div class="ai-phase-you" style="background:#f0faf6; border-color: #b2ddd0; color:#1a4a3a;"><strong>✅ Sit back.</strong> Claude is working. You'll see progress messages appear.</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase E — Set Up Your Telegram Bot</div>
+    <div class="ai-phase-desc">Claude walks you through creating a personal Telegram bot — this is the account that will message you every day. It only takes a few taps in Telegram.</div>
+    <div class="ai-phase-time">⏱ About 5 minutes</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Follow Claude's step-by-step instructions in Telegram. When you have a bot token (a long code), paste it into Claude.</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase F — Claude Installs Everything ❌</div>
+    <div class="ai-phase-desc">Claude loads HealthOS onto your server, writes your credentials, installs all software, reboots the server (that's normal), and launches the bot as a background service.</div>
+    <div class="ai-phase-time">⏱ About 15 minutes — the longest phase</div>
+    <div class="ai-phase-you" style="background:#f0faf6; border-color: #b2ddd0; color:#1a4a3a;"><strong>✅ Sit back.</strong> Claude is doing all the work. You may see a lot of text scrolling — that's normal.</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase G — Verify Everything ❌</div>
+    <div class="ai-phase-desc">Claude runs a final check on your server and sends a test message to your Telegram group.</div>
+    <div class="ai-phase-time">⏱ About 1 minute</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Check your Telegram — you should see a message arrive from your new bot. Tell Claude "test message received" and you're done.</div>
+  </div>
+
+
+  <!-- COMPLETE -->
+  <div class="complete-box">
+    <div class="big-emoji">🎉</div>
+    <h2>HealthOS Is Live!</h2>
+    <p>
+      Your personal health coach is running 24/7 in the cloud.<br>
+      Check-ins will arrive in your Telegram group at 8 AM, 10 AM, 3 PM, 6 PM, and 10 PM Eastern.<br><br>
+      <strong>Monthly cost after your free period: ~$7</strong>
+    </p>
+  </div>
+
+
+  <!-- EULA -->
+  <div class="eula">
+    <h3>📋 Terms of Use — Reminder</h3>
+    <p>
+      By signing up for HealthOS, you agreed to the Yost AI Terms of Service. This is a friendly reminder of the key points.
+    </p>
+    <p>
+      <strong>Your responsibility:</strong> HealthOS is a personal wellness tool designed to help you track habits and stay consistent. It is not a medical device and does not provide medical advice, diagnosis, or treatment. Please do not use it as a substitute for professional medical care.
+    </p>
+    <p>
+      <strong>Your data:</strong> The information you share with HealthOS lives on your own private server. You own it. We don't access it, sell it, or share it.
+    </p>
+    <p>
+      <strong>Limitation of liability:</strong> HealthOS software is provided as-is. Yost AI is not liable for decisions made based on information provided by the system. Use good judgment — and when in doubt, talk to a doctor.
+    </p>
+    <p>
+      Questions about the terms? Reply to your welcome email and we'll be happy to help.
+    </p>
+  </div>
+
+  <!-- FOOTER -->
+  <p style="text-align: center; font-size: 12px; color: #aaa; margin-top: 28px;">
+    HealthOS by Yost AI &nbsp;|&nbsp; Questions? Reply to your setup email.
+  </p>
+
+</body>
+</html>
