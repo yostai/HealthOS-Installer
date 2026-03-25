@@ -100,11 +100,9 @@ Ask the user the following (can ask all at once in a friendly, conversational me
    - `401` → invalid — ask them to check console.anthropic.com and re-paste
    - Other → network issue, warn and proceed with caution
 
-4. **GitHub repo URL:** The HealthOS app code will be cloned from GitHub onto the server.
-   "I need the HealthOS GitHub repo URL to install the app on your server. You received this link in your setup instructions email."
-   - Format: `https://TOKEN@github.com/yostai/HealthOS-Clean`
-   - The token was provided in your setup email — paste the full URL exactly as given.
-   Store this in session memory only — never write to install-state.json.
+4. **HealthOS access token:** "You received a HealthOS access token in your setup email — please paste it here."
+   Construct the repo URL internally as: `https://TOKEN@github.com/yostai/HealthOS-Clean`
+   Store token and URL in session memory only — never write to install-state.json.
 
 5. **S3 bucket name:** Will be set after AWS is configured. Use `healthos-backup` as placeholder for now.
 
@@ -163,6 +161,9 @@ Then re-run preflight.
 
 - **Yes** → proceed. Update S3 bucket name to `healthos-backup-{account-id}`.
 - **No** → existing CLI is pointing at a different account. Tell the user:
+  > "To confirm: sign in to your new HealthOS AWS account, then look at the **top-right corner** of the page. Click your account name — the account ID appears in the dropdown (formatted like 2400-3773-7327). Does that match **[ACCOUNT_ID]**?"
+
+  If still no → existing CLI is pointing at a different account. Tell the user:
   > "No problem. Please paste your Access Key ID and Secret Access Key for your new HealthOS account and I'll configure it."
 
   Once they provide the keys, run:
