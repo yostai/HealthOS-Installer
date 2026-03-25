@@ -4,8 +4,7 @@
 #            <bot-token> <group-id> <anthropic-key> \
 #            <bucket-name> <backup-key-id> <backup-secret>
 #
-# Clones HealthOS directly from GitHub onto the server.
-# App code goes GitHub -> server only. Never touches the installer machine.
+# github-repo-url format: https://TOKEN@github.com/ACCOUNT/repo-name
 
 set -e
 
