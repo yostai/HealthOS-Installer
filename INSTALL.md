@@ -149,23 +149,29 @@ Run:
 bash "scripts/01-preflight.sh"
 ```
 
-**If AWS CLI is missing:** The script will download it. Tell the user:
-"Run this command in your Mac terminal (you'll be asked for your password):"
-```
+**If `CLI_DOWNLOADED=true`:** The package is ready. Run this directly (Claude Code will prompt for the user's Mac password — tell the user "I need your Mac password to install a required tool"):
+```bash
 sudo installer -pkg /tmp/AWSCLIV2.pkg -target /
 ```
-Wait for confirmation, then re-run the script.
+Then re-run preflight.
 
-**If credentials not configured:** Proceed to Human Step 2.
+**If `NEED_CREDENTIALS=true`:** CLI is installed but not configured. Proceed to Human Step 2.
 
 **If `PREFLIGHT_OK=true`:** Show the user the Account ID and **verify it's the right account:**
 > "I found existing AWS credentials on your Mac. They point to account: **[ACCOUNT_ID]**
 > Is this the AWS account you just created for HealthOS? (yes/no)"
 
 - **Yes** → proceed. Update S3 bucket name to `healthos-backup-{account-id}`.
-- **No** → existing CLI is configured for a different account (personal/work). Tell the user:
-  > "We need to point the CLI at your new HealthOS account. Go to your new AWS account → IAM → create a user `healthos-installer` with AdministratorAccess → create an access key → run `aws configure` in your terminal and paste the new credentials."
-  > "Tell me when done and I'll verify."
+- **No** → existing CLI is pointing at a different account. Tell the user:
+  > "No problem. Please paste your Access Key ID and Secret Access Key for your new HealthOS account and I'll configure it."
+
+  Once they provide the keys, run:
+  ```bash
+  aws configure set aws_access_key_id THEIR_KEY_ID
+  aws configure set aws_secret_access_key THEIR_SECRET
+  aws configure set default.region us-east-1
+  aws configure set default.output json
+  ```
   Re-run `01-preflight.sh` and confirm the correct Account ID before proceeding.
 
 Mark `phase-1-preflight` complete only after account is confirmed correct.
@@ -179,7 +185,7 @@ Mark `phase-1-preflight` complete only after account is confirmed correct.
 Tell the user:
 
 ---
-Now we need to give the installer permission to set up your cloud server. This takes about 3 minutes.
+Now we need to give the installer permission to set up your cloud server. This takes about 3 minutes — just some clicking in your AWS account.
 
 **Steps:**
 1. Go to **console.aws.amazon.com** → search "IAM" at the top → click IAM
@@ -189,24 +195,22 @@ Now we need to give the installer permission to set up your cloud server. This t
 5. Click on the user you just created → click **"Security credentials"** tab
 6. Scroll to "Access keys" → click **"Create access key"**
 7. Choose **"Command Line Interface (CLI)"** → check the box → Next → Create access key
-8. **Copy both values** — you'll need them in a moment:
+8. **Copy both values** and paste them here:
    - Access Key ID (starts with AKIA...)
    - Secret Access Key (long string — only shown once)
 
-**Then open your Mac terminal and run:**
-```
-aws configure
-```
-When prompted:
-- AWS Access Key ID: paste yours
-- AWS Secret Access Key: paste yours
-- Default region name: `us-east-1`
-- Default output format: `json`
-
-**When done:** Tell me "AWS configured" and I'll verify it.
+**When done:** Paste both values here and I'll handle the rest.
 ---
 
-After confirmation, re-run:
+Once the user pastes their keys, run:
+```bash
+aws configure set aws_access_key_id THEIR_KEY_ID
+aws configure set aws_secret_access_key THEIR_SECRET
+aws configure set default.region us-east-1
+aws configure set default.output json
+```
+
+Then re-run:
 ```bash
 bash "scripts/01-preflight.sh"
 ```
