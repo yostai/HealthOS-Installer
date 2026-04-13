@@ -38,14 +38,16 @@ ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
 
 # --- Clone HealthOS from GitHub onto server ---
 echo "--- Cloning HealthOS onto server..."
-ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
-    "if [ -d /home/ubuntu/healthos/.git ]; then
-         echo '  SKIP: healthos already cloned — pulling latest instead'
-         cd /home/ubuntu/healthos && git pull
-     else
-         git clone $GITHUB_REPO_URL /home/ubuntu/healthos
-         echo '  OK: HealthOS cloned'
-     fi"
+ssh $SSH_OPTS ubuntu@"$SERVER_IP" "
+    REPO_URL='$GITHUB_REPO_URL'
+    if [ -d /home/ubuntu/healthos/.git ]; then
+        echo '  SKIP: healthos already cloned — pulling latest instead'
+        cd /home/ubuntu/healthos && git pull
+    else
+        git clone \"\$REPO_URL\" /home/ubuntu/healthos
+        echo '  OK: HealthOS cloned'
+    fi
+"
 
 # --- Write .env directly to server ---
 echo "--- Writing .env to server..."

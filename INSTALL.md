@@ -33,7 +33,9 @@ After completing each phase, add the phase name to `completed_phases`.
 
 **On resume:** If `completed_phases` is non-empty, ask:
 > "I see a previous partial install. Would you like to **resume** from where it left off, or **start fresh**?"
-- Resume → skip completed phases, then re-ask for ALL of these secrets before continuing:
+- Resume → skip completed phases, then:
+  0. Read `install-state-{name}.json` and reload into session: `instance_name`, `server_ip`, `pem_path`, `bucket_name`, `iam_user`, `bot_username`. These are non-secrets stored in the state file — do not re-ask the user for them.
+  Then re-ask for ALL of these secrets before continuing:
   1. Anthropic API key
   2. Telegram bot token (if Phase 3B is incomplete or later)
   3. GitHub repo URL — including the token if it's a private repo (never written to state file)
@@ -177,6 +179,8 @@ Then re-run preflight.
 
 Mark `phase-1-preflight` complete only after account is confirmed correct.
 
+Update install-state with `bucket_name` (set to `healthos-backup-{account-id}`).
+
 ---
 
 ## HUMAN STEP 2: AWS Access Key (~3 min)
@@ -307,6 +311,8 @@ bash "scripts/03-telegram.sh" "BOT_TOKEN"
 
 Store `BOT_USERNAME` for the completion summary. Mark `phase-3-telegram` complete.
 
+Update install-state with `bot_username`.
+
 ---
 
 ## Phase 4: Deploy HealthOS to Server (automated)
@@ -358,7 +364,7 @@ Mark `phase-5-server-a` complete.
 
 Run:
 ```bash
-bash "scripts/05-server-b.sh" \
+bash "scripts/06-server-b.sh" \
     "SERVER_IP" \
     "PEM_PATH"
 ```
@@ -378,11 +384,11 @@ Mark `phase-6-server-b` complete.
 
 ## Phase 7: Verify Everything (automated)
 
-**What this does:** Runs 11 checks and sends a test message to your Telegram group.
+**What this does:** Runs 13 checks and sends a test message to your Telegram group.
 
 Run:
 ```bash
-bash "scripts/06-verify.sh" \
+bash "scripts/07-verify.sh" \
     "SERVER_IP" \
     "PEM_PATH" \
     "TELEGRAM_BOT_TOKEN" \
@@ -436,6 +442,21 @@ Mark `phase-complete` in install-state.
 
 ---
 
+## If HealthOS Stops Responding
+
+If your Telegram bot goes silent and won't reply, your cloud server may need a reboot. This is rare but can happen.
+
+**From your Mac, run:**
+```bash
+python3 scripts/reboot_healthos.py
+```
+
+The script uses your existing AWS credentials (set up during install — nothing extra needed). It reboots your server and tells you when it's back online. Your bot should be active within 30 seconds of the script completing.
+
+**If the script can't find your instance name automatically**, it will ask you to enter it. You can find the name in the Lightsail console at [lightsail.aws.amazon.com](https://lightsail.aws.amazon.com) — it's listed under "Instances" (e.g., `healthos-personal`).
+
+---
+
 ## Error Reference
 
 | Error | Likely Cause | Fix |
@@ -449,5 +470,5 @@ Mark `phase-complete` in install-state.
 | `No module named apps.command.__main__` | Missing file in GitHub repo | Check that `apps/command/__main__.py` exists in the HealthOS repo |
 | Bot not found when adding to group | Searching by display name | Search by @username (with @ prefix) in Telegram |
 | `getUpdates` returns no messages | No message sent to group | Send any message in the group, then retry |
-| `SERVER_B_OK` not shown | Phase B failed mid-run | Check SSH, re-run `scripts/05-server-b.sh` |
+| `SERVER_B_OK` not shown | Phase B failed mid-run | Check SSH, re-run `scripts/06-server-b.sh` |
 | AWS backup credentials lost on resume | Session interrupted after Phase 3A | Delete + recreate: `aws iam delete-access-key --user-name {iam-user} --access-key-id {key-id}` then re-run Phase 3A |

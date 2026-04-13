@@ -79,26 +79,41 @@ check "Crontab: 6+ entries installed" \
     "ssh $SSH_OPTS ubuntu@$SERVER_IP 'crontab -l | grep -v \"^#\" | grep -v \"^$\" | wc -l | awk \"{exit (\\\$1 < 6)}\"'" \
     "Run: ssh healthos && crontab ~/healthos/scripts/crontab-healthos.txt"
 
-# 8. health.db exists
+# 8. .env exists with correct permissions
 check ".env exists with correct permissions" \
     "ssh $SSH_OPTS ubuntu@$SERVER_IP 'test -f /home/ubuntu/healthos/.env && stat -c \"%a\" /home/ubuntu/healthos/.env | grep -q 600'" \
     "Run: ssh healthos && chmod 600 ~/healthos/.env"
 
-# 9. Apps command module
-check "apps.command module loadable" \
-    "ssh $SSH_OPTS ubuntu@$SERVER_IP 'cd /home/ubuntu/healthos && .venv/bin/python3 -c \"import apps.command\" 2>&1 | grep -v \"^$\" | head -1 | grep -qv Error || true; test -f /home/ubuntu/healthos/apps/command/__main__.py'" \
-    "Check: ssh healthos && ls ~/healthos/apps/command/__main__.py"
+# 9. Swap active
+check "Swap: 2GB active" \
+    "ssh $SSH_OPTS ubuntu@$SERVER_IP 'swapon --show | grep -q swapfile'" \
+    "Run: ssh healthos && sudo swapon /swapfile — if missing, re-run scripts/05-server-a.sh"
 
-# 10. Telegram test (only if token + group ID provided)
+# 10. apps/command/__main__.py exists
+check "apps/command/__main__.py exists" \
+    "ssh $SSH_OPTS ubuntu@$SERVER_IP 'test -f /home/ubuntu/healthos/apps/command/__main__.py'" \
+    "Check: ssh $SSH_ALIAS && ls ~/healthos/apps/command/__main__.py"
+
+# 11. apps.command module importable
+check "apps.command module importable" \
+    "ssh $SSH_OPTS ubuntu@$SERVER_IP 'cd /home/ubuntu/healthos && .venv/bin/python3 -c \"import apps.command; print(\\\"OK\\\")\" 2>&1 | grep -q OK'" \
+    "Run: ssh $SSH_ALIAS && cd healthos && .venv/bin/python3 -c \"import apps.command\" to see the import error"
+
+# 12. Telegram: token valid + send install confirmation message
 if [ -n "$BOT_TOKEN" ] && [ -n "$GROUP_ID" ]; then
-    check "Telegram: health_notify.py runs" \
-        "ssh $SSH_OPTS ubuntu@$SERVER_IP 'cd /home/ubuntu/healthos && .venv/bin/python3 scripts/health_notify.py --mode morning' 2>&1 | grep -qv 'Error\\|Traceback'" \
-        "Check: ssh healthos && cd healthos && .venv/bin/python3 scripts/health_notify.py --mode morning"
+    check "Telegram: bot connected + message sent" \
+        "curl -sf -X POST 'https://api.telegram.org/bot${BOT_TOKEN}/sendMessage' \
+            -d chat_id=${GROUP_ID} \
+            -d text='✅ HealthOS is installed and connected.
+
+Congratulations on your new HealthOS Coach. When you are ready to set up your coach, please type '\''setup'\'' here.' \
+            | python3 -c \"import sys,json; d=json.load(sys.stdin); exit(0 if d.get('ok') else 1)\"" \
+        "Check bot token and group ID — make sure the bot is an admin in your Telegram group"
 else
     echo "  SKIP Telegram test (no token/group-id provided)"
 fi
 
-# 11. Node.js version
+# 13. Node.js version
 check "Node.js 22+ installed" \
     "ssh $SSH_OPTS ubuntu@$SERVER_IP 'node --version | grep -q \"v22\"'" \
     "Run: ssh healthos && curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt install -y nodejs"

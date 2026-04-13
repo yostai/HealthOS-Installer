@@ -1,0 +1,58 @@
+
+# Categories:
+
+## Diet
+Examples:
+- typical American diet - processed foods.
+- high protein / low carb - keto, paleo, Atkins
+- vegetarian, vegan, macrobiotic, etc
+- vegan
+- pescatarian, etc
+- Grazing - Ideal Protein, etc
+
+### Diet Preferences
+*Preference* - the diet. If processed food, request moving to healthier choices.
+
+## Workout
+
+### Workout preferences
+Examples: 
+- typical gym weightlifting
+- CrossFit full body weights and exercise
+- Home low impact
+- none
+
+*Collect enough workout descriptions to fill a healthy week of the user's appropriate level exercise. 
+
+#### Weightlifting data
+*Descriptions* - Typical exercises: legs, arms, back, abs, chest, shoulders?
+*Schedule* - 6 days a week, one exercise per day?
+
+#### Crossfit data
+*Descriptions* - Typical exercises: what are your workouts? Do you obtain from a Crossfit website schedule?
+*Schedule* - 6 days a week, one exercise per day?
+
+#### Home Low impact
+*Descriptions* - Typical exercises: what are your preferred workouts? Do you have exercise equipment or do core, calistenics?
+*Schedule* - 6 days a week, one exercise per day?
+
+#### none data
+*Descriptions* - walking is excellent for heart and lung health, and low bearing body weight resistance is excellent for bone health - and will make you look and feel better. Can we decide what exercises to do together?
+*Schedule* - walking every day, 1 mile. a week's rotation of several descriptions.
+
+
+## Complications
+
+### Complication Descriptions
+Examples: 
+- injuries: muscle or bone, prevent user from doing certain exercises, collect restrictions.
+- allergies: interfere with some diet needs, eg: getting enough protein, etc.
+- diseases: can interfere with diet and exercise, collect restrictions
+- addictions: carb, alcohol, medications, drugs, bulimia - some need to seek medical advice. Carbs can potentially be overcome in 3-4 days.
+
+## Motivation
+### Motivation Descriptions
+Examples: 
+- highly motivated, no issues, don't overdo the exercise.
+- typical, will need reminding to exercise and eat right
+- low motivation, will need extra push from coach.

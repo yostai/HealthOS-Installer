@@ -43,6 +43,23 @@ ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
      libffi-dev libssl-dev curl wget awscli 2>&1 | tail -5"
 echo "  OK"
 
+# --- Swap file (2GB) ---
+# Prevents OOM crashes on 1GB RAM instances during heavy coaching sessions.
+# Created before reboot so it's active from first boot via /etc/fstab.
+echo "--- Creating 2GB swap file..."
+ssh $SSH_OPTS ubuntu@"$SERVER_IP" "
+    if [ ! -f /swapfile ]; then
+        sudo fallocate -l 2G /swapfile &&
+        sudo chmod 600 /swapfile &&
+        sudo mkswap /swapfile &&
+        sudo swapon /swapfile &&
+        grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab > /dev/null
+        echo '  OK: 2GB swap active and persistent'
+    else
+        echo '  SKIP: swapfile already exists'
+    fi
+"
+
 # --- Reboot ---
 echo "--- Rebooting server (kernel upgrade requires reboot)..."
 ssh $SSH_OPTS ubuntu@"$SERVER_IP" "sudo reboot" 2>/dev/null || true

@@ -59,6 +59,17 @@ fi
 
 # --- Create access key ---
 echo "--- Creating IAM access key..."
+# Auto-clear oldest key if user already has 2 (IAM limit is 2 per user)
+KEY_COUNT=$(aws iam list-access-keys --user-name "$IAM_USER" \
+    --query 'length(AccessKeyMetadata)' --output text 2>/dev/null || echo 0)
+if [ "$KEY_COUNT" -ge 2 ]; then
+    echo "  INFO: IAM user already has 2 keys — removing oldest to make room..."
+    OLDEST_KEY=$(aws iam list-access-keys --user-name "$IAM_USER" \
+        --query 'sort_by(AccessKeyMetadata, &CreateDate)[0].AccessKeyId' \
+        --output text)
+    aws iam delete-access-key --user-name "$IAM_USER" --access-key-id "$OLDEST_KEY"
+    echo "  OK: Oldest key removed"
+fi
 KEY_JSON=$(aws iam create-access-key --user-name "$IAM_USER" --output json)
 AWS_BACKUP_KEY_ID=$(echo "$KEY_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['AccessKey']['AccessKeyId'])")
 AWS_BACKUP_SECRET=$(echo "$KEY_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['AccessKey']['SecretAccessKey'])")

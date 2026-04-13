@@ -26,11 +26,28 @@ SSH_OPTS="-i $PEM_PATH -o StrictHostKeyChecking=no -o ServerAliveInterval=60"
 # --- Node.js 22 ---
 echo "--- Installing Node.js 22..."
 ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
-    "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - 2>&1 | tail -3"
+    "set -o pipefail; curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - 2>&1 | tail -3"
 ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
     "sudo apt install -y nodejs 2>&1 | tail -3"
-NODE_VERSION=$(ssh $SSH_OPTS ubuntu@"$SERVER_IP" "node --version 2>/dev/null || echo NOT_FOUND")
-echo "  OK: $NODE_VERSION"
+
+NODE_MAJOR=$(ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
+    "node --version 2>/dev/null | sed 's/v//' | cut -d. -f1 || echo 0")
+if [ "$NODE_MAJOR" -lt 22 ]; then
+    echo "  Node.js v22 not found (got v${NODE_MAJOR}) — auto-retrying..."
+    ssh $SSH_OPTS ubuntu@"$SERVER_IP" "sudo apt remove -y nodejs 2>/dev/null || true"
+    ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
+        "set -o pipefail; curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - 2>&1 | tail -3"
+    ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
+        "sudo apt install -y nodejs 2>&1 | tail -3"
+    NODE_MAJOR=$(ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
+        "node --version 2>/dev/null | sed 's/v//' | cut -d. -f1 || echo 0")
+    if [ "$NODE_MAJOR" -lt 22 ]; then
+        echo "  ERROR: Node.js v22 could not be installed after two attempts."
+        echo "  This is usually a temporary network issue. Wait a minute and re-run Phase 6."
+        exit 1
+    fi
+fi
+echo "  OK: Node.js v${NODE_MAJOR}"
 
 # --- Claude Code ---
 echo "--- Installing Claude Code..."
@@ -113,9 +130,9 @@ ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
      sudo systemctl enable healthos-bot && \
      sudo systemctl start healthos-bot"
 
-echo "  Waiting for bot to start..."
+echo "  Starting your HealthOS bot — this may take up to 60 seconds on first launch..."
 BOT_WAIT=0
-BOT_MAX=5
+BOT_MAX=20
 while true; do
     BOT_STATUS=$(ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
         "sudo systemctl is-active healthos-bot 2>/dev/null || echo FAILED")
