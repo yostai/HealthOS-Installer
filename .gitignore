@@ -1,3 +1,7 @@
+# HealthOS Installer — sensitive local files
+installer-config.txt
+install-state.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
