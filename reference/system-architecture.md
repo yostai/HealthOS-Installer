@@ -11,6 +11,12 @@
 ```
 All changes go here. All ZIPs are built from here. Do not look for, create, or port to any other copy. Any references in this document to a "distribution copy" or `module-installs/healthos-installer/` are outdated and wrong — ignore them.
 
+**This includes the customer-facing setup guide HTML:**
+```
+HealthOS-Installer/HealthOS-Setup-Guide.html  ← single source of truth
+```
+When this file is updated, copy it to `outputs/healthos-sales/setup-guide.html` and push both repos. Do not edit `setup-guide.html` in the healthos-sales repo directly — always edit the installer copy first.
+
 ---
 
 ## Deployment Structure
