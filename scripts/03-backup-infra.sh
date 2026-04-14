@@ -1,4 +1,5 @@
 #!/bin/bash
+# © 2026 Yost AI. All rights reserved.
 # 03-backup-infra.sh — Create S3 bucket + IAM backup user
 # Usage: bash 03-backup-infra.sh <bucket-name> <iam-username>
 # Example: bash 03-backup-infra.sh healthos-backup-123456789012 healthos-backup

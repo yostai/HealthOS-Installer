@@ -1,6 +1,7 @@
 # HealthOS Cloud — INSTALL.md
+<!-- © 2026 Yost AI. All rights reserved. -->
 
-**Version:** 0.4.1
+**Version:** 0.4.14 — Multi-ProductOS support: multiple installs on one Lightsail server, shared Python venv, Playwright removed
 **Installs:** HealthOS on AWS Lightsail (Ubuntu 24.04, 1GB RAM, static IP)
 **Human time:** ~20 minutes (new AWS account) or ~10 minutes (existing account)
 **Total time:** ~30 minutes
@@ -38,6 +39,8 @@ After completing each phase, add the phase name to `completed_phases`.
   2. Telegram bot token (if Phase 3B is incomplete or later)
   3. GitHub repo URL — including the token if it's a private repo (never written to state file)
   4. AWS backup key ID + secret (if Phase 3A complete but Phase 4 not yet run — see recovery note below)
+
+  Also reload these non-secret values from the state file: `server_ip`, `pem_path`, `bucket_name`, `iam_user`, `bot_username`, `app_slug`
 - Start fresh → clear the state file and begin from Phase 0
 
 **AWS backup credential recovery:** The backup key ID and secret are only shown once by AWS. If the session was interrupted after Phase 3A but before Phase 4 and the credentials were lost:
@@ -91,17 +94,29 @@ Ask:
       -H "anthropic-version: 2023-06-01"
     ```
     - `200` → valid, store in session memory, continue
-    - `401` → "That key doesn't seem valid — can you double-check it at console.anthropic.com and paste it again?"
+    - `401` → "That key doesn't seem valid — can you double-check it at https://console.anthropic.com and paste it again?"
     - Other → network issue, warn and proceed with caution
 - **No** → Give these instructions:
 
 ---
-No problem — here's how to get one. It's free to start.
+No problem — here's how to get one.
 
+**Step 1 — Add billing:**
 1. Go to **console.anthropic.com** and sign up (or log in if you already have an account)
-2. Click **Manage** in the left sidebar → then **API Keys**
-3. Click **Create Key** — give it any name, like "HealthOS"
-4. Copy the key — it starts with `sk-ant-api03-...`
+2. Add billing — look for **"Begin building with Claude for only $5"** on the home screen, or click **Billing** in the left sidebar
+3. Add your payment info and purchase **$5 in credits**
+
+**Step 2 — Enable Auto Reload** (keeps your health coach running automatically):
+1. Click your account name in the **bottom left** → **Organization Settings** → **Billing**
+2. If it says **"Auto reload is disabled"** next to your balance, click **Edit**
+3. Turn on **Auto Reload Credits**
+4. Keep **$5** under "When credit balance reaches:" and **$15** under "Bring credit balance back up to:" — these are the minimums and will last several months
+5. Click **Update and Purchase**
+
+**Step 3 — Create your API key:**
+1. Click **Manage** in the left sidebar → then **API Keys**
+2. Click **Create Key** — give it any name, like "HealthOS"
+3. Copy the key — it starts with `sk-ant-api03-...`
 
 ⚠️ **Important:** You only get one chance to copy this key. Once you leave that page, it's gone forever. Paste it into your Notes app right now to save it.
 
@@ -133,6 +148,7 @@ AWS is the cloud platform where your health coach will run 24/7. Your first 3 mo
 7. Enter a credit card (required, but won't be charged for 90 days)
 8. Verify your phone number
 9. Choose **"Basic support — Free"**
+   > **NOTE:** The $7/month cost comes later — that's your Lightsail server, not AWS support. Choose Free here.
 10. Sign in to the AWS Console
 
 When you're in, let me know and we'll keep going!
@@ -152,11 +168,15 @@ Wait for confirmation before proceeding.
    - Static IP: `{instance-name}-static-ip`
    - IAM backup user: `{instance-name}-backup`
 
+   **App slug** (directory name on the server): Defaults to the instance name. This is what gets installed at `/home/ubuntu/{slug}/`. For a brand-new server this is the same as the instance name — no action needed. If you're adding a second ProductOS to an existing server, the installer will detect the collision and auto-increment (e.g., `healthos-2`).
+
+   Write `app_slug` to the config section of the state file, set to the instance name.
+
 2. **S3 bucket name:** Will be set after AWS is configured. Use `healthos-backup` as placeholder for now.
 
 3. **GitHub repo URL:** Read from `installer-config.txt` in this folder (line: `GITHUB_REPO_URL=...`). Do not ask the user for it. Store in session memory only.
 
-Copy `install-state.json` to `install-state-{instance-name}.json`. Write instance name, key name, static IP name, IAM user to the config section.
+Copy `install-state.json` to `install-state-{instance-name}.json`. Write instance name, app slug, key name, static IP name, IAM user to the config section.
 
 Tell the user:
 > "Perfect — I've got everything I need to get started. Give me just a moment while I check your system and make sure everything is ready before we touch your AWS account."
@@ -205,7 +225,7 @@ Now we need to give the installer permission to set up your cloud server. Here's
 1. In the AWS Console, search **"IAM"** at the top → click IAM
 2. In the left sidebar, click **Users** → click **Create user**
 3. Username: `healthos-installer` → click Next
-4. Select **"Attach policies directly"** → search for and check **AdministratorAccess** → click Next → Create user
+4. Select **"Attach policies directly"** → under **"Permissions policies"**, search for and check **AdministratorAccess** → scroll to the bottom and click **Next** → **Create user**
 5. Click on the user you just created → click the **"Security credentials"** tab
 6. Scroll to "Access keys" → click **"Create access key"**
 7. Choose **"Command Line Interface (CLI)"** → check the confirmation box → Next
@@ -305,8 +325,10 @@ Now let's connect Telegram. This takes about 5 minutes.
 **Part A — Create your bot:**
 1. Open Telegram and search for **@BotFather** — tap **Open** (not Start)
 2. Tap **"+ Create a New Bot"**
-3. Enter a name for your bot (e.g., "HealthOS") — copy this name into Notes or somewhere safe, then tell me what you named it
+3. Enter a name for your bot (e.g., "HealthOS")
+   - Copy the name, save it in Notes, then paste it here
 4. Enter a username for your bot (e.g., `healthos_yourname_bot`) — **must end in `_bot`**, and use `_` only (no `-` allowed)
+   - Copy your bot username into Notes to keep it safe, then paste it here
 5. Tap **Create Bot**
 6. BotFather sends you a token like `8672576295:AAEf...` — **copy it and paste it into Notes** to keep it safe, then paste it here
 
@@ -353,12 +375,15 @@ bash scripts/04-workspace.sh \
     "ANTHROPIC_API_KEY" \
     "S3_BUCKET" \
     "AWS_BACKUP_KEY_ID" \
-    "AWS_BACKUP_SECRET"
+    "AWS_BACKUP_SECRET" \
+    "APP_SLUG"
 ```
 
 Tell the user: "Deploying HealthOS to your server — give it a couple of minutes..."
 
-Read the output and verify it contains `All key files present on server`. Mark `phase-4-workspace` complete.
+Read the output:
+- If it contains `All key files present on server`: mark `phase-4-workspace` complete and proceed.
+- **If the output contains `SLUG_EXISTS=true`:** The app directory `APP_SLUG` already exists on the server. Read the `SLUG_SUGGESTED=` value from the output. Update `app_slug` in the state file to the suggested value. Tell the user: "Found an existing install at `/home/ubuntu/{old-slug}/` — installing this one at `/home/ubuntu/{new-slug}/` instead." Re-run Phase 4 with the updated slug.
 
 ---
 
@@ -381,9 +406,9 @@ Read the output and verify `SERVER_A_OK=true`. Mark `phase-5-server-a` complete.
 
 **What this does:** Installs the full HealthOS software stack and starts your bot as a background service. Takes 5–8 minutes.
 
-Run directly (timeout: 10 min), substituting SERVER_IP and PEM_PATH:
+Run directly (timeout: 10 min), substituting SERVER_IP, PEM_PATH, and APP_SLUG:
 ```bash
-bash scripts/05-server-b.sh "SERVER_IP" "PEM_PATH"
+bash scripts/06-server-b.sh "SERVER_IP" "PEM_PATH" "APP_SLUG"
 ```
 
 Tell the user: "Installing your health coach software — this is the longest step, about 5–8 minutes. I'll let you know when it's done..."
@@ -398,12 +423,13 @@ Read the output and verify `SERVER_B_OK=true` and bot status `active (running)`.
 
 Run directly (timeout: 5 min), substituting all values:
 ```bash
-bash scripts/06-verify.sh \
+bash scripts/07-verify.sh \
     "SERVER_IP" \
     "PEM_PATH" \
     "TELEGRAM_BOT_TOKEN" \
     "TELEGRAM_GROUP_ID" \
-    "INSTANCE_NAME"
+    "INSTANCE_NAME" \
+    "APP_SLUG"
 ```
 
 Tell the user: "Running final checks — just a minute. Check your Telegram group when I give the all-clear."
@@ -434,6 +460,8 @@ Check your Telegram group — a test message should have just arrived from your 
 Your first 3 months are FREE on a new AWS account.
 
 **Next:** Open your Telegram group and type `/setup` — your health coach will walk you through a quick onboarding to personalize your check-ins. After that, your first real check-in will arrive tonight or tomorrow morning.
+
+**One more thing:** Your bot will send you a message in Telegram when it's fully connected to Claude's AI. If you added your Anthropic credits during this install, they can take up to 20 minutes to activate on a new account — that's completely normal. Your bot will check automatically every few minutes and send you a message when it's ready. No action needed on your end.
 ---
 
 Write `install-log-{instance-name}.md` at the installer root:
@@ -441,7 +469,7 @@ Write `install-log-{instance-name}.md` at the installer root:
 - All resource names (instance, key, static IP, S3 bucket, IAM users)
 - SSH command
 - Bot username
-- Credential file location: `.env` on server at `/home/ubuntu/healthos/.env`
+- Credential file location: `.env` on server at `/home/ubuntu/{app-slug}/.env`
 
 Mark `phase-complete` in install-state.
 

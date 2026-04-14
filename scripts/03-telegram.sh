@@ -1,4 +1,5 @@
 #!/bin/bash
+# © 2026 Yost AI. All rights reserved.
 # 03-telegram.sh — Capture Telegram group ID via getUpdates API
 # Usage: bash 03-telegram.sh <bot-token>
 # Prerequisites: User must have sent at least one message to the group after adding the bot

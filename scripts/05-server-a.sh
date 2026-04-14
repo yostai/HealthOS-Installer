@@ -1,4 +1,5 @@
 #!/bin/bash
+# © 2026 Yost AI. All rights reserved.
 # 05-server-a.sh — Server Provisioning Phase A (pre-reboot)
 # Usage: bash 05-server-a.sh <server-ip> <pem-path>
 #

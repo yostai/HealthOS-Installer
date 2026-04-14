@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HealthOS Setup Guide</title>
+  <!-- © 2026 Yost AI. All rights reserved. -->
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -337,8 +338,9 @@
   <div class="cover">
     <div class="logo">🌿</div>
     <h1>HealthOS Setup Guide</h1>
-    <p class="subtitle">Your personal AI health coach — up and running in about 30 minutes.</p>
-    <span class="time-badge">⏱ About 30 minutes &nbsp;|&nbsp; No technical experience needed</span>
+    <p class="subtitle">Your personal AI health coach — up and running in about 30–45 minutes.</p>
+    <span class="time-badge">⏱ About 30-45 minutes &nbsp;|&nbsp; No technical experience needed</span>
+    <p class="subtitle" style="margin-top: 14px; font-size: 14px; color: #666;">To keep your private data completely confidential, we need your help during the install.</p>
   </div>
 
 
@@ -398,28 +400,33 @@
     </thead>
     <tbody>
       <tr>
-        <td>Claude desktop app</td>
-        <td>Free download from claude.ai — Step 2 below walks you through it</td>
-        <td>👍🏻</td>
-      </tr>
-      <tr>
-        <td>Anthropic API key</td>
-        <td>Free to get started — Step 3 walks you through it</td>
-        <td>👍🏻</td>
-      </tr>
-      <tr>
-        <td>Telegram app</td>
-        <td>Free — install on your phone or desktop before starting</td>
-        <td>👍🏻</td>
-      </tr>
-      <tr>
         <td>HealthOS app link</td>
         <td>A private link to the HealthOS software — sent to you in your setup instructions email. Have it ready before you start.</td>
         <td>👍🏻</td>
       </tr>
       <tr>
+        <td>Telegram Messenger App</td>
+        <td>Free — install on your phone or desktop before starting</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>Claude desktop app</td>
+        <td>Free download from claude.ai — Step 2 below walks you through it</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>Credit card for Anthropic Claude</td>
+        <td>$5 one time to start, then approx $1–5/mth — Step 3 walks you through it</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
+        <td>Anthropic API key</td>
+        <td>Step 3 walks you through it</td>
+        <td>👍🏻</td>
+      </tr>
+      <tr>
         <td>Credit card for AWS</td>
-        <td>Required to create an account — <strong>your first 3 months are completely free</strong></td>
+        <td>Required to create an account — <strong>your first 3 months are completely free, then $7/mth</strong></td>
         <td>👍🏻</td>
       </tr>
       <tr>
@@ -506,16 +513,32 @@
         <span class="role-badge badge-you">👍🏻 You do this</span>
       </div>
       <div class="step-body">
-        <p>This is a password that lets HealthOS use Claude's AI. It takes about 2 minutes to get.</p>
+        <p>This gives HealthOS access to Claude's AI. You'll add billing first, then create your key.</p>
         <ol style="margin-top: 10px;">
-          <li>Go to <strong>console.anthropic.com</strong> and sign up (it's free)</li>
-          <li>Once logged in, click <strong>API Keys</strong> in the left sidebar</li>
-          <li>Click <strong>Create Key</strong> — give it any name (e.g., "HealthOS")</li>
+          <li>Go to <strong>https://console.anthropic.com</strong> and sign up or log in</li>
+          <li>Add billing — look for any of these:
+            <ul style="margin: 4px 0 4px 16px;">
+              <li><strong>"Begin building with Claude for only $5"</strong> — button in the middle of the screen</li>
+              <li><strong>Billing</strong> in the left sidebar</li>
+              <li>Click your name in the <strong>bottom right</strong> → Settings</li>
+            </ul>
+          </li>
+          <li>Add your payment info and purchase <strong>$5 in credits</strong></li>
+          <li>Enable Auto Reload so your health coach never runs out of credits:
+            <ul style="margin: 4px 0 4px 16px;">
+              <li>Click your account name in the <strong>bottom left</strong> → <strong>Organization Settings</strong> → <strong>Billing</strong></li>
+              <li>If it says <strong>"Auto reload is disabled"</strong> next to your balance, click <strong>Edit</strong></li>
+              <li>Turn on <strong>Auto Reload Credits</strong></li>
+              <li>Keep <strong>$5</strong> under "When credit balance reaches:" and <strong>$15</strong> under "Bring credit balance back up to:" — these are the minimums and will last several months</li>
+              <li>Click <strong>Update and Purchase</strong></li>
+            </ul>
+          </li>
+          <li>Click <strong>Create API Key</strong> — give it any name (e.g., "HealthOS")</li>
           <li>Copy the key — it looks like: <code style="background:#f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 12px;">sk-ant-api03-...</code></li>
           <li>Paste it somewhere safe (Notes app, etc.) — you'll need it in a few minutes</li>
         </ol>
         <div class="wait-box">
-          <strong>✋ Don't skip this.</strong> Claude will ask for this key during setup — have it ready before you start.
+          <strong>✋ Don't skip billing.</strong> The API key won't work without credits — your health coach will fail to start if this step is skipped.
         </div>
       </div>
     </div>
@@ -561,9 +584,8 @@
         <ol>
           <li>Open the <strong>Claude desktop app</strong></li>
           <li>Click the <strong>Code</strong> tab at the top of the window</li>
-          <li>Look for the <strong>"Set workspace folder"</strong> option — it's located below the chat input box. If you already have a session open, scroll down to the bottom of the chat area to find it.</li>
-          <li>Navigate to your Downloads folder and select the <strong>HealthOS-Installer-main</strong> folder you unzipped in Step 1</li>
-          <li>Click <strong>Open</strong></li>
+          <li>Click <strong>"Set workspace folder"</strong> below the chat input box (if you have a session open, scroll down to find it) → navigate to your Downloads folder → select the <strong>HealthOS-Installer-main</strong> folder → click <strong>Open</strong></li>
+          <li>At the bottom of the Claude window, click where it says <strong>"Ask permissions"</strong> or <strong>"Auto accept edits"</strong> and select <strong>Bypass Permissions</strong> — a confirmation dialog will appear; click <strong>Bypass</strong> to confirm</li>
           <li>Claude will ask you to <strong>Trust this workspace</strong> — click <strong>Trust Workspace</strong></li>
         </ol>
         <div class="info-box">
@@ -593,7 +615,7 @@
           <strong>📋 macOS permission popups:</strong> During the install, macOS may ask if Claude can access your files or run commands. When you see these:
           <ul style="margin: 8px 0 0 0;">
             <li><strong>"claude would like to access files in your Downloads folder"</strong> → click <strong>Allow</strong></li>
-            <li><strong>"Allow once" / "Always allow for project (local)"</strong> → click <strong>Always allow for project (local)</strong></li>
+            <li><strong>"Allow once" / "Always allow for project (local)"</strong> → click <strong>Bypass Permissions</strong></li>
           </ul>
           These are expected and safe — Claude needs them to run the installer.
         </div>
@@ -657,7 +679,7 @@
     <div class="ai-phase-title">Phase G — Verify Everything ❌</div>
     <div class="ai-phase-desc">Claude runs a final check on your server and sends a test message to your Telegram group.</div>
     <div class="ai-phase-time">⏱ About 1 minute</div>
-    <div class="ai-phase-you"><strong>Your job:</strong> Check your Telegram — you should see a message arrive from your new bot. Tell Claude "test message received" and you're done.</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Check your Telegram — you should see a test message arrive from your new bot. You may also see a message from your bot about getting started or activating your Anthropic billing — both are normal. Tell Claude "test message received" and you're done.</div>
   </div>
 
 
@@ -669,6 +691,10 @@
       Your personal health coach is running 24/7 in the cloud.<br>
       Check-ins will arrive in your Telegram group at 8 AM, 10 AM, 3 PM, 6 PM, and 10 PM Eastern.<br><br>
       <strong>Monthly cost after your free period: ~$7</strong>
+    </p>
+    <p style="margin-top: 16px; font-size: 13px; opacity: 0.85; line-height: 1.7;">
+      Shortly after setup, your bot will send you a message in Telegram when it's fully connected to Claude's AI.<br>
+      If you see a message about activating Anthropic billing, your credits may still be processing — that's normal and can take up to 20 minutes on a new account. Your bot will check automatically every few minutes and send you a follow-up message once it's ready. No action needed.
     </p>
   </div>
 
@@ -696,6 +722,9 @@
   <!-- FOOTER -->
   <p style="text-align: center; font-size: 12px; color: #aaa; margin-top: 28px;">
     HealthOS by Yost AI &nbsp;|&nbsp; Questions? Reply to your setup email.
+  </p>
+  <p style="text-align: center; font-size: 11px; color: #ccc; margin-top: 8px;">
+    Installer v0.4.14 &nbsp;|&nbsp; HealthOS Coach &copy; Yost AI. All rights reserved.
   </p>
 
 </body>

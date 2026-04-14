@@ -1,4 +1,5 @@
 #!/bin/bash
+# © 2026 Yost AI. All rights reserved.
 # 01-preflight.sh — Mac preflight checks before HealthOS install
 # Usage: bash 01-preflight.sh
 # Checks: AWS CLI installed, credentials configured, credentials valid

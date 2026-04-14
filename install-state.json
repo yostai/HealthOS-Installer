@@ -4,6 +4,7 @@
   "completed_phases": [],
   "config": {
     "instance_name": null,
+    "app_slug": null,
     "key_name": null,
     "static_ip_name": null,
     "bucket_name": null,

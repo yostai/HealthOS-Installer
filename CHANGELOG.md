@@ -1,4 +1,64 @@
 # HealthOS Installer — Changelog
+<!-- © 2026 Yost AI. All rights reserved. -->
+
+---
+
+## 2026-04-14
+
+### Multi-instance installer support + Playwright removal
+
+#### `install-state.json` — Added `app_slug` field
+Added `app_slug` to the config section. Persists the app directory name across session interruptions so resume works correctly when the slug was auto-incremented.
+
+#### `INSTALL.md` — App slug threading
+- Phase 0: app slug introduced (defaults to instance name, auto-incremented on collision)
+- Phase 4: slug passed as 10th arg; collision handling added
+- Phase 6: slug passed as 3rd arg; script name corrected to `06-server-b.sh`
+- Phase 7: slug passed as 6th arg; script name corrected to `07-verify.sh`
+- Install log: credential path updated from hardcoded `healthos/.env` to `{slug}/.env`
+- Resume: `app_slug` added to the values reloaded from state file
+
+#### `04-workspace.sh` — Slug parameterization + collision detection
+- Accepts `APP_SLUG` as 10th arg
+- Checks for existing `/home/ubuntu/{slug}/` before cloning; exits with `SLUG_EXISTS=true` and `SLUG_SUGGESTED={slug}-N` if collision found (N auto-incremented until a free name is found)
+- All `/home/ubuntu/healthos` references replaced with `/home/ubuntu/${APP_SLUG}`
+
+#### `06-server-b.sh` — Shared venv + slug parameterization + crontab append + Playwright removed
+- Accepts `APP_SLUG` as 3rd arg
+- Shared venv: checks for `/home/ubuntu/.venv/`; creates it on first install, reuses on subsequent installs (~350MB once, not per app)
+- Playwright + Chromium install block removed entirely (unused, ~300MB, ~3 min)
+- Crontab: switched from replace-all to append with `# BEGIN {slug}` / `# END {slug}` markers; idempotent on re-run; paths substituted at install time (shared venv + app slug)
+- Systemd: service copied as `{slug}-bot.service`, patched in-place via two-pass sed (venv path first, then workspace path)
+- All `healthos` hardcoded references parameterized
+
+#### `07-verify.sh` — Slug parameterization
+- Accepts `APP_SLUG` as 6th arg (defaults to `healthos` for backwards compatibility)
+- All path checks, service name checks, and fix commands updated to use `${APP_SLUG}` and `/home/ubuntu/.venv`
+
+---
+
+## 2026-04-13
+
+### Added: Credit propagation delay explanation + Anthropic Auto Reload instructions
+
+#### `HealthOS-Setup-Guide.html` — Credit propagation delay + Auto Reload
+
+**Credit propagation delay:** Added explanation in two places:
+- Phase G "Your job" section: user is told they may see a bot message about billing/credits before the ready signal arrives
+- Install Complete box: new paragraph explaining that Anthropic credits can take 5–20 minutes to activate on new accounts, and that the bot will self-check and notify when it's ready
+
+**Auto Reload setup:** Added as a new step in the Anthropic account setup section (Step 4), with sub-bullets for exact navigation: Billing → Usage limits → Enable automatic recharge. Explains threshold ($10 trigger, $40 reload) so users understand what they're enabling.
+
+#### `INSTALL.md` — Credit propagation delay + Auto Reload
+
+**Credit propagation delay:** Added "One more thing" note in the Install Complete section — informs the installer that the bot's ready signal may take 5–20 minutes to appear after billing is added.
+
+**Auto Reload instructions:** Pre-Install Step 2 "No" path restructured into three explicit steps:
+1. Add billing method
+2. Enable Auto Reload (with exact navigation steps and threshold explanation)
+3. Create API key
+
+Ensures installers can walk customers through the full Anthropic account setup, not just API key creation.
 
 ---
 

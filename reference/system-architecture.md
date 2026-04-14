@@ -5,6 +5,39 @@
 
 ---
 
+## Deployment Structure
+
+How the installer reaches customers and how updates get published.
+
+```
+GitHub: yostai/HealthOS-Installer
+    → Netlify auto-deploys on every push
+    → Serves: HealthOS-Setup-Guide.html (online instructions)
+    → Serves: download-page.html (customer download page with ?code= link)
+
+S3 bucket
+    → Holds: health-installer.zip (the installer customers actually download)
+    → Customers reach it via the Netlify download page link
+
+Customer purchase flow:
+    Stripe purchase → email with download link
+        → Netlify download-page.html?code=...
+        → Download link → pulls health-installer.zip from S3
+        → Customer unzips, opens in Claude desktop, runs /install
+```
+
+**Two separate update actions are required when the installer changes:**
+
+| What changed | Action required |
+|---|---|
+| `HealthOS-Setup-Guide.html` (online instructions) | Commit + push to `yostai/HealthOS-Installer` → Netlify auto-deploys |
+| Any script, `INSTALL.md`, or any file inside the ZIP | Rebuild `/tmp/health-installer.zip` → upload to S3 |
+| Both | Do both |
+
+Pushing to GitHub does NOT update what customers download. Uploading to S3 does NOT update the online instructions. They are independent.
+
+---
+
 ## What This Workspace Is
 
 This is the **development copy** of the HealthOS Installer — the place where changes are made, tested, and tracked before being ported to the customer-facing distribution copy.

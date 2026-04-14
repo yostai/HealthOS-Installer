@@ -1,4 +1,5 @@
 #!/bin/bash
+# © 2026 Yost AI. All rights reserved.
 # 02-aws.sh — Create full HealthOS AWS infrastructure via CLI
 # Usage: bash 02-aws.sh <instance-name> <key-name> <static-ip-name>
 # Example: bash 02-aws.sh healthos-personal healthos-key healthos-static-ip
