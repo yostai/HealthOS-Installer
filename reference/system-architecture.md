@@ -17,6 +17,8 @@ HealthOS-Installer/HealthOS-Setup-Guide.html  ← single source of truth
 ```
 When this file is updated, copy it to `outputs/healthos-sales/setup-guide.html` and push both repos. Do not edit `setup-guide.html` in the healthos-sales repo directly — always edit the installer copy first.
 
+The `images/` folder is also shared. If any image is added or changed in `HealthOS-Installer/images/`, copy it to `outputs/healthos-sales/images/` as well.
+
 ---
 
 ## Deployment Structure
