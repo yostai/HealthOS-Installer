@@ -12,6 +12,12 @@ Type `/install` and press Enter. Claude will guide you through the entire setup.
 - Telegram on your phone (free, App Store or Google Play)
 - An Anthropic API key (get one at console.anthropic.com)
 
+## Building the Installer ZIP
+
+**To build the ZIP for S3 upload, always use `/build-zip` — never construct the zip command manually.**
+
+This ensures the correct filename (`healthos-installer.zip`), correct source path, and correct exclude list every time.
+
 ## Scripts
 
 All installer scripts are in `scripts/`. Claude runs them automatically — do not modify them.

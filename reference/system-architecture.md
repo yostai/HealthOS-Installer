@@ -1,7 +1,15 @@
-# HealthOS Installer (Dev) — System Architecture
+# HealthOS Installer — System Architecture
 
-**Purpose:** Reference for any Claude instance working on this dev codebase. Read this before touching anything. Explains every file's role, the full install flow, and the relationship between this dev copy and the customer distribution copy.
-**Last mapped:** 2026-04-13
+**Purpose:** Reference for any Claude instance working on this codebase. Read this before touching anything. Explains every file's role, the full install flow, and how the installer reaches customers.
+**Last mapped:** 2026-04-14
+
+## ⚠️ SINGLE SOURCE OF TRUTH
+
+**There is ONE installer source:**
+```
+/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Installer
+```
+All changes go here. All ZIPs are built from here. Do not look for, create, or port to any other copy. Any references in this document to a "distribution copy" or `module-installs/healthos-installer/` are outdated and wrong — ignore them.
 
 ---
 
@@ -31,10 +39,28 @@ Customer purchase flow:
 | What changed | Action required |
 |---|---|
 | `HealthOS-Setup-Guide.html` (online instructions) | Commit + push to `yostai/HealthOS-Installer` → Netlify auto-deploys |
-| Any script, `INSTALL.md`, or any file inside the ZIP | Rebuild `/tmp/health-installer.zip` → upload to S3 |
+| Any script, `INSTALL.md`, or any file inside the ZIP | Rebuild `/tmp/healthos-installer.zip` → upload to S3 |
 | Both | Do both |
 
 Pushing to GitHub does NOT update what customers download. Uploading to S3 does NOT update the online instructions. They are independent.
+
+### ZIP Build — Include/Exclude List
+
+ZIP filename: `healthos-installer.zip`
+Built from: `/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Installer`
+
+**Excluded from ZIP:**
+
+| File/Folder | Reason |
+|---|---|
+| `.git/` | Git internals — not needed by customers |
+| `.gitignore` | Dev tooling only |
+| `INSTALLER-DEV-NOTES.md` | Internal issue tracker — not for customers |
+| `categories-preferences-data.txt` | Dev reference — not used during install |
+| `reference/` | Internal dev docs |
+| `scripts/reboot_healthos.py` | Post-install maintenance tool — not part of install flow |
+
+**Everything else is included**, including `installer-config.txt` (customers need the GitHub URL to clone HealthOS during install).
 
 ---
 
