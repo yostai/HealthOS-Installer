@@ -465,16 +465,15 @@
         <span class="role-badge badge-you">👍🏻 You do this</span>
       </div>
       <div class="step-body">
-        <ol>
-          <li>Click the button below to open the HealthOS Installer page on GitHub</li>
-          <li>Click the green <strong>Code</strong> button near the top right</li>
-          <li>Click <strong>Download ZIP</strong></li>
-          <li>Open your Downloads folder — find the file called <strong>HealthOS-Installer-main.zip</strong></li>
-          <li>Double-click it to unzip — a folder called <strong>HealthOS-Installer-main</strong> will appear</li>
+        <p>Follow the instructions in your purchase email from <strong>yostadvantage.com</strong> to download the installation program.</p>
+        <ol style="margin-top: 10px;">
+          <li>Open your Downloads folder — you should see either a folder called <strong>healthos-installer</strong>, or a file called <strong>healthos-installer.zip</strong></li>
+          <li>If you see the <strong>.zip file</strong>, double-click it to unzip — the folder will appear</li>
+          <li>If you already see the <strong>folder</strong>, you're all set — Mac unzipped it automatically</li>
         </ol>
-        <a class="action-link" href="https://github.com/yostai/HealthOS-Installer" target="_blank">→ Open HealthOS Installer on GitHub</a>
+        <p style="font-size: 13px; color: #888; margin-top: 10px;">Haven't downloaded yet? <a href="https://startling-biscuit-e614db.netlify.app/download-page.html" target="_blank" style="color: #0d6e5a;">Go to the download page</a> — you will need the code from your purchase email.</p>
         <div class="wait-box">
-          <strong>✋ Pause here.</strong> Make sure the folder is fully unzipped before moving on.
+          <strong>✋ Pause here.</strong> Make sure the <strong>healthos-installer</strong> folder is in your Downloads folder before moving on.
         </div>
       </div>
     </div>
@@ -491,14 +490,14 @@
       </div>
       <div class="step-body">
         <p>HealthOS is installed by Claude — the AI assistant. You'll need the desktop app (not just the website).</p>
-        <ol style="margin-top: 10px;">
-          <li>Go to <strong>claude.ai</strong> and click <strong>Download</strong></li>
-          <li>Open the downloaded file and follow the install steps</li>
-          <li>Open Claude — you should see three tabs at the top: <strong>Chat, Cowork, Code</strong></li>
-        </ol>
         <div class="info-box">
-          <strong>Already have Claude?</strong> Make sure it's up to date — open it and check for any update prompts.
+          <strong>Already have Claude?</strong> Make sure it's up to date — open it and check for any update prompts. Skip to Step 3.
         </div>
+        <ol style="margin-top: 10px;">
+          <li>Go to <strong><a href="https://claude.ai" target="_blank" style="color: #0d6e5a;">claude.ai</a></strong> and click <strong>Download</strong></li>
+          <li>Open the downloaded file and follow the install steps</li>
+          <li>Open Claude — you should see three tabs at the top: Chat, Cowork, <strong>Code</strong> <img src="images/claude-tabs.png" alt="Chat Cowork Code tabs" style="height: 28px; vertical-align: middle; margin-left: 8px; border-radius: 4px;"> — you'll be using the <strong>Code</strong> tab</li>
+        </ol>
       </div>
     </div>
   </div>
@@ -535,7 +534,12 @@
           </li>
           <li>Click <strong>Create API Key</strong> — give it any name (e.g., "HealthOS")</li>
           <li>Copy the key — it looks like: <code style="background:#f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 12px;">sk-ant-api03-...</code></li>
-          <li>Paste it somewhere safe (Notes app, etc.) — you'll need it in a few minutes</li>
+        </ol>
+        <div class="wait-box" style="border-left-color: #e53e3e; background: #fff5f5;">
+          <strong>⚠️ You only get one chance to copy this key.</strong> Once you close or navigate away from the page, it's gone — Anthropic will never show it again. Paste it into your Notes app or somewhere safe <em>right now</em> before moving on.
+        </div>
+        <ol start="7" style="margin-top: 10px;">
+          <li>Paste the key somewhere safe (Notes app, etc.) — you'll need it in a few minutes</li>
         </ol>
         <div class="wait-box">
           <strong>✋ Don't skip billing.</strong> The API key won't work without credits — your health coach will fail to start if this step is skipped.
@@ -583,13 +587,15 @@
       <div class="step-body">
         <ol>
           <li>Open the <strong>Claude desktop app</strong></li>
-          <li>Click the <strong>Code</strong> tab at the top of the window</li>
-          <li>Click <strong>"Set workspace folder"</strong> below the chat input box (if you have a session open, scroll down to find it) → navigate to your Downloads folder → select the <strong>HealthOS-Installer-main</strong> folder → click <strong>Open</strong></li>
-          <li>At the bottom of the Claude window, click where it says <strong>"Ask permissions"</strong> or <strong>"Auto accept edits"</strong> and select <strong>Bypass Permissions</strong> — a confirmation dialog will appear; click <strong>Bypass</strong> to confirm</li>
-          <li>Claude will ask you to <strong>Trust this workspace</strong> — click <strong>Trust Workspace</strong></li>
+          <li>Click the <strong>Code</strong> tab at the top of the window <img src="images/claude-tabs.png" alt="Chat Cowork Code tabs" style="height: 28px; vertical-align: middle; margin-left: 8px; border-radius: 4px;"></li>
+          <li>Click <strong>"Select folder"</strong> <img src="images/work-in-project.png" alt="Select folder" style="height: 24px; vertical-align: middle; margin-left: 8px; border-radius: 4px;"></li>
+          <li>At the bottom of the Claude window, click <strong>"Auto accept edits"</strong> <img src="images/bypass-permissions.png" alt="Auto accept edits" style="height: 24px; vertical-align: middle; margin-left: 8px; border-radius: 4px;"> — a confirmation dialog will appear, click <strong>"Enable bypass mode"</strong> to continue. This lets Claude work without asking for approval on every step.</li>
+          <li>Navigate to your Downloads folder and select the <strong>healthos-installer</strong> folder you unzipped in Step 1</li>
+          <li>Click <strong>Open</strong></li>
+          <li>A <em>"Trust this workspace?"</em> dialog may appear — either now or when you send your first message in Step 6. If it does, click <strong>Trust Workspace</strong></li>
         </ol>
         <div class="info-box">
-          The workspace is now set. Claude has access to the installer files and is ready for the next step.
+          You should see the project name appear in Claude's window. You're in the right place.
         </div>
       </div>
     </div>
@@ -601,23 +607,15 @@
     <div class="step-number">6</div>
     <div class="step-content">
       <div class="step-title">
-        Type /install and Press Enter
+        Tell Claude to Install Your Coach!
         <span class="role-badge badge-you">👍🏻 You do this</span>
       </div>
       <div class="step-body">
-        <p>In the Claude chat box at the bottom, type exactly:</p>
-        <p style="font-family: monospace; background: #f0f0f0; padding: 10px 16px; border-radius: 6px; margin: 10px 0; font-size: 15px; letter-spacing: 1px;">/install</p>
+        <p>In the Claude chat box at the bottom, type:</p>
+        <p style="font-family: monospace; background: #f0f0f0; padding: 10px 16px; border-radius: 6px; margin: 10px 0; font-size: 15px; letter-spacing: 1px;">Hi, Claude! Please run the install file</p>
         <p>Then press <strong>Enter</strong>.</p>
         <div class="wait-box">
-          <strong>⏳ Claude is now in charge.</strong> It will ask you a few questions before doing anything on AWS. You can answer all questions at once or one by one — Claude will tell you exactly what to do at each step.
-        </div>
-        <div class="info-box">
-          <strong>📋 macOS permission popups:</strong> During the install, macOS may ask if Claude can access your files or run commands. When you see these:
-          <ul style="margin: 8px 0 0 0;">
-            <li><strong>"claude would like to access files in your Downloads folder"</strong> → click <strong>Allow</strong></li>
-            <li><strong>"Allow once" / "Always allow for project (local)"</strong> → click <strong>Bypass Permissions</strong></li>
-          </ul>
-          These are expected and safe — Claude needs them to run the installer.
+          <strong>⏳ Claude is now in charge.</strong> It will introduce itself and ask you a few questions before doing anything on AWS. Answer each question and press Enter — Claude will tell you exactly what to type.
         </div>
       </div>
     </div>
@@ -632,12 +630,15 @@
 
   <p style="font-size: 14px; color: #555; margin-bottom: 24px;">From here, Claude drives the install. You'll be asked to do a few short tasks along the way. Here's what to expect — in order.</p>
 
+  <div class="info-box" style="margin-bottom: 20px;">
+    <strong>Heads up — permission prompts:</strong> As Claude runs commands, it may ask for your permission. If you see a prompt, click <strong>"Always allow for project (local)"</strong> <img src="images/always-allow.png" alt="Always allow for project (local)" style="height: 28px; vertical-align: middle; margin-left: 4px; border-radius: 4px;"> so it can work without interruption. And if you haven't already, make sure <strong>"Auto accept edits"</strong> <img src="images/bypass-permissions.png" alt="Auto accept edits" style="height: 24px; vertical-align: middle; margin-left: 4px; border-radius: 4px;"> is enabled at the bottom of the Claude window.
+  </div>
 
   <div class="ai-phase">
     <div class="ai-phase-title">Phase A — Claude Asks You Questions</div>
-    <div class="ai-phase-desc">Claude will ask for your instance name (you can use the default it suggests), your Anthropic API key, and the HealthOS app link from your setup email. Answer each question and press Enter.</div>
+    <div class="ai-phase-desc">Claude will ask for your health coach project name (you can use the default it suggests) and your Anthropic API key (from Step 3). Answer each question and press Enter.</div>
     <div class="ai-phase-time">⏱ About 2 minutes of back-and-forth</div>
-    <div class="ai-phase-you"><strong>Your job:</strong> Answer Claude's questions. Have your Anthropic API key and your HealthOS app link ready to paste.</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Answer Claude's questions. Have your Anthropic API key (from Step 3) ready to paste.</div>
   </div>
 
   <div class="ai-phase">
@@ -663,7 +664,7 @@
 
   <div class="ai-phase">
     <div class="ai-phase-title">Phase E — Set Up Your Telegram Bot</div>
-    <div class="ai-phase-desc">Claude walks you through creating a personal Telegram bot — this is the account that will message you every day. It only takes a few taps in Telegram.</div>
+    <div class="ai-phase-desc">Claude walks you through creating a personal Telegram bot — this is the account where your health coach will check in with you every day. It only takes a few taps in Telegram.</div>
     <div class="ai-phase-time">⏱ About 5 minutes</div>
     <div class="ai-phase-you"><strong>Your job:</strong> Follow Claude's step-by-step instructions in Telegram. When you have a bot token (a long code), paste it into Claude.</div>
   </div>
@@ -679,7 +680,17 @@
     <div class="ai-phase-title">Phase G — Verify Everything ❌</div>
     <div class="ai-phase-desc">Claude runs a final check on your server and sends a test message to your Telegram group.</div>
     <div class="ai-phase-time">⏱ About 1 minute</div>
-    <div class="ai-phase-you"><strong>Your job:</strong> Check your Telegram — you should see a test message arrive from your new bot. You may also see a message from your bot about getting started or activating your Anthropic billing — both are normal. Tell Claude "test message received" and you're done.</div>
+    <div class="ai-phase-you"><strong>Your job:</strong> Check your Telegram — you should see a test message arrive from your new bot. Tell Claude "test message received" and you're done.</div>
+  </div>
+
+  <div class="ai-phase">
+    <div class="ai-phase-title">Phase H — Meet Your Health Coach</div>
+    <div class="ai-phase-desc">Claude will instruct you to run a setup in Terminal when you're ready. This is your health coach interview — Your health coach will ask you questions to personalize HealthOS to your goals, habits, and preferences. Take your time and answer naturally.</div>
+    <div class="ai-phase-time">⏱ About 10–15 minutes</div>
+    <div class="ai-phase-you">
+      <strong>Your job:</strong> Answer Claude's questions. You can type your answers — or <strong>use talk-to-text</strong> on your phone keyboard. Use the <strong>microphone at the bottom of the keyboard</strong> (not the mic icon inside the text box — that one records your voice instead of transcribing it).<br><br>
+      <img src="images/which-mic.png" alt="Use the keyboard mic, not the text field mic" style="max-width: 240px; border-radius: 10px; margin-top: 8px; display: block;">
+    </div>
   </div>
 
 
@@ -689,12 +700,8 @@
     <h2>HealthOS Is Live!</h2>
     <p>
       Your personal health coach is running 24/7 in the cloud.<br>
-      Check-ins will arrive in your Telegram group at 8 AM, 10 AM, 3 PM, 6 PM, and 10 PM Eastern.<br><br>
-      <strong>Monthly cost after your free period: ~$7</strong>
-    </p>
-    <p style="margin-top: 16px; font-size: 13px; opacity: 0.85; line-height: 1.7;">
-      Shortly after setup, your bot will send you a message in Telegram when it's fully connected to Claude's AI.<br>
-      If you see a message about activating Anthropic billing, your credits may still be processing — that's normal and can take up to 20 minutes on a new account. Your bot will check automatically every few minutes and send you a follow-up message once it's ready. No action needed.
+      Your coach will check in with you inside Telegram several times over each day to keep you progressing toward your health goals.<br><br>
+      <strong>Monthly cost after your free period: ~$7 per month</strong>
     </p>
   </div>
 
@@ -706,10 +713,10 @@
       By signing up for HealthOS, you agreed to the Yost AI Terms of Service. This is a friendly reminder of the key points.
     </p>
     <p>
-      <strong>Your responsibility:</strong> HealthOS is a personal wellness tool designed to help you track habits and stay consistent. It is not a medical device and does not provide medical advice, diagnosis, or treatment. Please do not use it as a substitute for professional medical care.
+      <strong>Your responsibility:</strong> HealthOS is a personal wellness tool designed to help you track habits and stay consistent. It is not a medical device and does not provide medical advice, diagnosis, or treatment. Please do not use it as a substitute for professional medical care. Always check with a medical professional before changing your health programs in any way.
     </p>
     <p>
-      <strong>Your data:</strong> The information you share with HealthOS lives on your own private server. You own it. We don't access it, sell it, or share it.
+      <strong>Your data:</strong> The information you share with HealthOS lives on your own private server. You own it. We don't access it, sell it, or share it. You are responsible for protecting your data with full knowledge of the privacy protocols of AWS, Telegram, and Anthropic/Claude.
     </p>
     <p>
       <strong>Limitation of liability:</strong> HealthOS software is provided as-is. Yost AI is not liable for decisions made based on information provided by the system. Use good judgment — and when in doubt, talk to a doctor.
