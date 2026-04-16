@@ -53,15 +53,15 @@ Then re-run Phase 3A — the script will skip user and policy creation and creat
 
 ---
 
-## Download Code Validation — Do This First, Before Anything Else
+## Download Code Validation — FIRST ACTION, NO EXCEPTIONS
 
-Before greeting the user or asking any questions, validate the download code. Do not proceed to Pre-Install Steps until this passes.
+⚠️ **This is your first and only action. Do not greet the user. Do not mention Telegram. Do not mention API keys. Do not describe HealthOS. Do not ask any other question. Send exactly one message asking for the download code and wait. Nothing else happens until the code is validated.**
 
-Read `MAKE_CONFIRM_WEBHOOK` from `installer-config.txt`, then ask:
+Read `MAKE_CONFIRM_WEBHOOK` from `installer-config.txt`. Send this message and nothing else:
 
-> "Welcome to HealthOS! Before we get started — please enter the download code from your purchase email."
+> "Please enter the download code from your HealthOS purchase email."
 
-Wait for the user to paste their code. Store as `DOWNLOAD_CODE` in session memory.
+Stop. Wait for the user to respond with their code. Store as `DOWNLOAD_CODE` in session memory.
 
 Run the validation:
 ```bash
