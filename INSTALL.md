@@ -1,7 +1,7 @@
 # HealthOS Cloud — INSTALL.md
 <!-- © 2026 Yost AI. All rights reserved. -->
 
-**Version:** 0.4.14 — Multi-ProductOS support: multiple installs on one Lightsail server, shared Python venv, Playwright removed
+**Version:** 0.4.16 — Download code gate, Claude desktop UI updates
 **Installs:** HealthOS on AWS Lightsail (Ubuntu 24.04, 1GB RAM, static IP)
 **Human time:** ~20 minutes (new AWS account) or ~10 minutes (existing account)
 **Total time:** ~30 minutes
@@ -40,7 +40,9 @@ After completing each phase, add the phase name to `completed_phases`.
   3. GitHub repo URL — including the token if it's a private repo (never written to state file)
   4. AWS backup key ID + secret (if Phase 3A complete but Phase 4 not yet run — see recovery note below)
 
-  Also reload these non-secret values from the state file: `server_ip`, `pem_path`, `bucket_name`, `iam_user`, `bot_username`, `app_slug`
+  Also reload these non-secret values from the state file: `server_ip`, `pem_path`, `bucket_name`, `iam_user`, `bot_username`, `app_slug`, `download_code`
+
+  **Download code on resume:** Read `download_code` from the state file config section. Re-validate via `MAKE_CONFIRM_WEBHOOK` before continuing any install work — use the same validation flow as Phase 0 step 1. If validation fails, stop and direct the user to support@yost.ai. (Re-validation consumes a second Downloads count — acceptable within the 3-use limit.)
 - Start fresh → clear the state file and begin from Phase 0
 
 **AWS backup credential recovery:** The backup key ID and secret are only shown once by AWS. If the session was interrupted after Phase 3A but before Phase 4 and the credentials were lost:
@@ -162,7 +164,59 @@ Wait for confirmation before proceeding.
 
 **Goal:** Gather the last details needed before starting AWS work. All three pre-install steps must be complete first.
 
-1. **Instance name:** Suggest `healthos-personal`. Ask if they want to change it.
+1. **Download code validation:** Read `MAKE_CONFIRM_WEBHOOK` from `installer-config.txt`.
+
+   Ask the user:
+   > "Before we get started — please enter the download code from your HealthOS purchase email."
+
+   Wait for the user to paste their code. Store as `DOWNLOAD_CODE` in session memory.
+
+   Run the validation:
+   ```bash
+   MAKE_CONFIRM_WEBHOOK=$(grep MAKE_CONFIRM_WEBHOOK installer-config.txt | cut -d= -f2)
+   RESPONSE=$(curl -s -X POST "$MAKE_CONFIRM_WEBHOOK" \
+     -H "Content-Type: application/json" \
+     -d "{\"code\": \"$DOWNLOAD_CODE\"}")
+   ```
+
+   Check for network failure first:
+   ```bash
+   if [ -z "$RESPONSE" ]; then
+     echo "Could not reach the validation server. Check your internet connection and try again."
+     exit 1
+   fi
+   ```
+
+   Parse the response status:
+   ```bash
+   STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+   ```
+
+   If `STATUS` is `ok`:
+   - Tell the user: "Download code verified. Let's get started!"
+   - Hold `DOWNLOAD_CODE` in session memory. It will be written to the state file after the per-instance file is created in step 2.
+   - Continue to step 2.
+
+   If `STATUS` is `deny`, read the reason and stop immediately:
+   ```bash
+   REASON=$(echo "$RESPONSE" | grep -o '"reason":"[^"]*"' | cut -d'"' -f4)
+   DOWNLOADS=$(echo "$RESPONSE" | grep -o '"downloads":[0-9]*' | cut -d: -f2)
+   MAX=$(echo "$RESPONSE" | grep -o '"max":[0-9]*' | cut -d: -f2)
+   ```
+
+   | Reason | Message to user |
+   |---|---|
+   | `invalid` | "That download code wasn't found. Please check your purchase email or contact support@yost.ai" |
+   | `inactive` | "That download code is no longer active. Please contact support@yost.ai" |
+   | `expired` | "That download code has expired. Please contact support@yost.ai" |
+   | `limit` | "That download code has been used $DOWNLOADS/$MAX times. Please contact support@yost.ai" |
+   | anything else | "Download code validation failed. Please contact support@yost.ai" |
+
+   On any deny: stop installation immediately. Do not proceed to step 2.
+
+   If `STATUS` is empty or any value other than `ok` or `deny`: stop installation immediately. Tell the user: "Download code validation failed. Please contact support@yost.ai"
+
+2. **Instance name:** Suggest `healthos-personal`. Ask if they want to change it.
    Derived names (tell the user these will be used):
    - Key: `{instance-name}-key`
    - Static IP: `{instance-name}-static-ip`
@@ -172,11 +226,11 @@ Wait for confirmation before proceeding.
 
    Write `app_slug` to the config section of the state file, set to the instance name.
 
-2. **S3 bucket name:** Will be set after AWS is configured. Use `healthos-backup` as placeholder for now.
+3. **S3 bucket name:** Will be set after AWS is configured. Use `healthos-backup` as placeholder for now.
 
-3. **GitHub repo URL:** Read from `installer-config.txt` in this folder (line: `GITHUB_REPO_URL=...`). Do not ask the user for it. Store in session memory only.
+4. **GitHub repo URL:** Read from `installer-config.txt` in this folder (line: `GITHUB_REPO_URL=...`). Do not ask the user for it. Store in session memory only.
 
-Copy `install-state.json` to `install-state-{instance-name}.json`. Write instance name, app slug, key name, static IP name, IAM user to the config section.
+Copy `install-state.json` to `install-state-{instance-name}.json`. Write instance name, app slug, key name, static IP name, IAM user, and download_code to the config section.
 
 Tell the user:
 > "Perfect — I've got everything I need to get started. Give me just a moment while I check your system and make sure everything is ready before we touch your AWS account."
@@ -442,6 +496,17 @@ Mark `phase-7-verify` complete.
 
 ## Install Complete
 
+**After Phase 7 verify passes — increment download count:**
+
+```bash
+MAKE_INCRDOWNLOADS_WEBHOOK=$(grep MAKE_INCRDOWNLOADS_WEBHOOK installer-config.txt | cut -d= -f2)
+curl -s -X POST "$MAKE_INCRDOWNLOADS_WEBHOOK" \
+  -H "Content-Type: application/json" \
+  -d "{\"code\": \"$DOWNLOAD_CODE\"}" > /dev/null
+```
+
+This is fire-and-forget — no response handling needed. Continue to the completion message regardless of outcome.
+
 When all phases are done and verify passes, tell the user:
 
 ---
@@ -491,3 +556,4 @@ Mark `phase-complete` in install-state.
 | `getUpdates` returns no messages | No message sent to group | Send any message in the group, then retry |
 | `SERVER_B_OK` not shown | Phase B failed mid-run | Check SSH, re-run `scripts/05-server-b.sh` |
 | AWS backup credentials lost on resume | Session interrupted after Phase 3A | Delete + recreate: `aws iam delete-access-key --user-name {iam-user} --access-key-id {key-id}` then re-run Phase 3A |
+| Download code denied at Phase 0 | Invalid, inactive, expired, or over-limit code | Stop installation. Direct user to support@yost.ai — check Airtable Licenses table to diagnose (Status, Expires At, Downloads fields). |

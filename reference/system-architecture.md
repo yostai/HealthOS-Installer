@@ -46,7 +46,7 @@ Three repos. They are completely separate and serve different purposes.
 
 **When `INSTALL.md`, scripts, or any installer file changes:**
 1. Claude edits files in `HealthOS-Installer/`
-2. Claude rebuilds ZIP: `cd /tmp && zip -r healthos-installer.zip "HealthOS-Installer/" --exclude "*/\.git/*" ...`
+2. Claude deletes any existing ZIP first (`rm /tmp/healthos-installer.zip`), then rebuilds clean — `zip -r` updates an existing ZIP and can leave stale files in place
 3. ⚠️ **Paul uploads the ZIP to S3** (replaces existing `healthos-installer.zip`) — **customers run the old installer until this is done**
 4. Paul approves git push → Claude commits + pushes to `yostai/HealthOS-Installer`
 
