@@ -3,6 +3,53 @@
 
 ---
 
+## 2026-04-16 — v0.4.16
+
+### Download code gate + UI updates + system architecture cleanup
+
+#### `INSTALL.md` — Download code validation gate (Phase 0 Step 1)
+Added a second validation layer before any install work begins:
+- Claude prompts for the customer's download code
+- Reads `MAKE_CONFIRM_WEBHOOK` from `installer-config.txt` and POSTs the code
+- Make looks up Airtable: returns `{ status, reason, downloads, max }`
+- `status = "ok"`: installation proceeds
+- `status = "deny"`: installation stops with reason displayed to customer
+- Any other status: stops with generic validation failure message
+- On resume: `download_code` reloaded from state file and re-validated before any install work continues
+
+#### `INSTALL.md` — Install Complete: download increment webhook
+Added fire-and-forget call to `MAKE_INCRDOWNLOADS_WEBHOOK` at install completion. Make increments the `Downloads` counter in Airtable Licenses table. Install outcome is not gated on this succeeding.
+
+#### `install-state.json` — Added `download_code` field
+Added `download_code: null` as first field in the config section. Persists the code for resume re-validation.
+
+#### `installer-config.txt` — Added Make webhook URLs
+Added `MAKE_CONFIRM_WEBHOOK` and `MAKE_INCRDOWNLOADS_WEBHOOK` entries. Both are live Make webhook URLs pointing to Airtable Licenses table lookups.
+
+#### `HealthOS-Setup-Guide.html` — New Claude desktop UI screenshots
+Updated for Anthropic's redesigned desktop app layout:
+- Code is now an icon in the top-left corner (not a tab at the top) — added new screenshot, shown first with "or" before the old tabs image
+- "Auto accept edits" renamed to "Ask Permissions" — new screenshot added
+- "Enable bypass mode" renamed to "Bypass Permissions" — new screenshot added
+- "Always allow for project (local)" renamed to "Always allow" — new screenshot added
+- Section 5 steps 3 and 4 swapped (Auto accept before Select folder)
+- Section 5 step 5: added "Click Open Folder" instruction
+- Part 3 reminder updated to match all new button names
+
+#### `VERSION` — Bumped to 0.4.16
+
+#### `reference/system-architecture.md` — Major cleanup
+- Added GitHub Repositories section (all 3 repos, purposes, local paths)
+- Added Who Does What section with change playbooks
+- Added ⚠️ CRITICAL section: ZIP must be rebuilt after any installer change (documents 2026-04-16 incident)
+- Added Complete Purchase-to-Install Flow and two-layer gate architecture
+- Added HealthOS-Sales Customer Site section (Airtable schema, validate-code.js role)
+- Removed all "distribution copy" language — replaced with "customer ZIP" throughout
+- Fixed stale `outputs/healthos-sales/` path references
+- Renamed "Dev vs. Distribution Copy" → "Dev Workspace vs. Customer ZIP" with updated status tracking
+
+---
+
 ## 2026-04-14
 
 ### Multi-instance installer support + Playwright removal
