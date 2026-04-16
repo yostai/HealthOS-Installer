@@ -53,6 +53,63 @@ Then re-run Phase 3A — the script will skip user and policy creation and creat
 
 ---
 
+## Download Code Validation — Do This First, Before Anything Else
+
+Before greeting the user or asking any questions, validate the download code. Do not proceed to Pre-Install Steps until this passes.
+
+Read `MAKE_CONFIRM_WEBHOOK` from `installer-config.txt`, then ask:
+
+> "Welcome to HealthOS! Before we get started — please enter the download code from your purchase email."
+
+Wait for the user to paste their code. Store as `DOWNLOAD_CODE` in session memory.
+
+Run the validation:
+```bash
+MAKE_CONFIRM_WEBHOOK=$(grep MAKE_CONFIRM_WEBHOOK installer-config.txt | cut -d= -f2)
+RESPONSE=$(curl -s -X POST "$MAKE_CONFIRM_WEBHOOK" \
+  -H "Content-Type: application/json" \
+  -d "{\"code\": \"$DOWNLOAD_CODE\"}")
+```
+
+Check for network failure first:
+```bash
+if [ -z "$RESPONSE" ]; then
+  echo "Could not reach the validation server. Check your internet connection and try again."
+  exit 1
+fi
+```
+
+Parse the response:
+```bash
+STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+```
+
+If `STATUS` is `ok`:
+- Tell the user: "Download code verified ✓ Let's get your health coach set up!"
+- Hold `DOWNLOAD_CODE` in session memory. It will be written to the state file in Phase 0.
+- Proceed to Pre-Install Steps.
+
+If `STATUS` is `deny`, read the reason and stop immediately:
+```bash
+REASON=$(echo "$RESPONSE" | grep -o '"reason":"[^"]*"' | cut -d'"' -f4)
+DOWNLOADS=$(echo "$RESPONSE" | grep -o '"downloads":[0-9]*' | cut -d: -f2)
+MAX=$(echo "$RESPONSE" | grep -o '"max":[0-9]*' | cut -d: -f2)
+```
+
+| Reason | Message to user |
+|---|---|
+| `invalid` | "That download code wasn't found. Please check your purchase email or contact support@yost.ai" |
+| `inactive` | "That download code is no longer active. Please contact support@yost.ai" |
+| `expired` | "That download code has expired. Please contact support@yost.ai" |
+| `limit` | "That download code has been used $DOWNLOADS/$MAX times. Please contact support@yost.ai" |
+| anything else | "Download code validation failed. Please contact support@yost.ai" |
+
+On any deny: stop immediately. Do not proceed.
+
+If `STATUS` is empty or any value other than `ok` or `deny`: stop immediately. Tell the user: "Download code validation failed. Please contact support@yost.ai"
+
+---
+
 ## Pre-Install Steps (Interactive — One at a Time)
 
 Walk through these three steps one at a time. Complete each fully and get confirmation before moving to the next. Do not present all three at once.
@@ -164,57 +221,7 @@ Wait for confirmation before proceeding.
 
 **Goal:** Gather the last details needed before starting AWS work. All three pre-install steps must be complete first.
 
-1. **Download code validation:** Read `MAKE_CONFIRM_WEBHOOK` from `installer-config.txt`.
-
-   Ask the user:
-   > "Before we get started — please enter the download code from your HealthOS purchase email."
-
-   Wait for the user to paste their code. Store as `DOWNLOAD_CODE` in session memory.
-
-   Run the validation:
-   ```bash
-   MAKE_CONFIRM_WEBHOOK=$(grep MAKE_CONFIRM_WEBHOOK installer-config.txt | cut -d= -f2)
-   RESPONSE=$(curl -s -X POST "$MAKE_CONFIRM_WEBHOOK" \
-     -H "Content-Type: application/json" \
-     -d "{\"code\": \"$DOWNLOAD_CODE\"}")
-   ```
-
-   Check for network failure first:
-   ```bash
-   if [ -z "$RESPONSE" ]; then
-     echo "Could not reach the validation server. Check your internet connection and try again."
-     exit 1
-   fi
-   ```
-
-   Parse the response status:
-   ```bash
-   STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-   ```
-
-   If `STATUS` is `ok`:
-   - Tell the user: "Download code verified. Let's get started!"
-   - Hold `DOWNLOAD_CODE` in session memory. It will be written to the state file after the per-instance file is created in step 2.
-   - Continue to step 2.
-
-   If `STATUS` is `deny`, read the reason and stop immediately:
-   ```bash
-   REASON=$(echo "$RESPONSE" | grep -o '"reason":"[^"]*"' | cut -d'"' -f4)
-   DOWNLOADS=$(echo "$RESPONSE" | grep -o '"downloads":[0-9]*' | cut -d: -f2)
-   MAX=$(echo "$RESPONSE" | grep -o '"max":[0-9]*' | cut -d: -f2)
-   ```
-
-   | Reason | Message to user |
-   |---|---|
-   | `invalid` | "That download code wasn't found. Please check your purchase email or contact support@yost.ai" |
-   | `inactive` | "That download code is no longer active. Please contact support@yost.ai" |
-   | `expired` | "That download code has expired. Please contact support@yost.ai" |
-   | `limit` | "That download code has been used $DOWNLOADS/$MAX times. Please contact support@yost.ai" |
-   | anything else | "Download code validation failed. Please contact support@yost.ai" |
-
-   On any deny: stop installation immediately. Do not proceed to step 2.
-
-   If `STATUS` is empty or any value other than `ok` or `deny`: stop installation immediately. Tell the user: "Download code validation failed. Please contact support@yost.ai"
+1. **Download code:** Already validated at the top of this install. `DOWNLOAD_CODE` is in session memory. It will be written to the state file after the per-instance file is created in step 2.
 
 2. **Instance name:** Suggest `healthos-personal`. Ask if they want to change it.
    Derived names (tell the user these will be used):
