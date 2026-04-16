@@ -1,7 +1,66 @@
 # HealthOS Installer — System Architecture
 
 **Purpose:** Reference for any Claude instance working on this codebase. Read this before touching anything. Explains every file's role, the full install flow, and how the installer reaches customers.
-**Last mapped:** 2026-04-14
+**Last mapped:** 2026-04-16
+
+## GitHub Repositories — What Each One Is
+
+Three repos. They are completely separate and serve different purposes.
+
+| Repo | Purpose | What auto-deploys from it | Local path |
+|---|---|---|---|
+| `yostai/HealthOS-Sales` | Customer-facing download site. Hosts the code-gated download page, validate-code.js Netlify function, and setup guide. | Netlify → `startling-biscuit-e614db.netlify.app` | `/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Sales` |
+| `yostai/HealthOS-Installer` | Dev workspace for the installer. Where installer changes are made, tested, and tracked. Source of truth for INSTALL.md, scripts, and setup guide HTML. | Nothing — changes must be manually ZIPped and uploaded to S3 | `/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Installer` (this folder) |
+| `yostai/HealthOS-Clean` | Production copy of the HealthOS application (the AI health coach bot that runs on the customer's Lightsail server). Pushed to this repo triggers GitHub Actions → deploys to Paul's Lightsail instance. | GitHub Actions → Lightsail (auto-deploys on push) | `/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Cloud` |
+
+**Common confusion points:**
+- `HealthOS-Installer` and `HealthOS-Clean` are different things. The installer deploys *onto* a Lightsail server; `HealthOS-Clean` is the app code *running on* that server.
+- `HealthOS-Sales` is entirely separate from both — it's the pre-purchase web property, not part of the installer or the app.
+- Pushing to `HealthOS-Installer` does not deploy anything. Only `HealthOS-Sales` (→ Netlify) and `HealthOS-Clean` (→ Lightsail) have auto-deploy pipelines.
+
+---
+
+## Who Does What — Roles After a Change
+
+**Claude does** (all coding, commits, and pushes — with Paul's explicit approval before any push):
+- All code modifications: `INSTALL.md`, scripts, `validate-code.js`, HTML files, config templates, documentation
+- Building the installer ZIP (bash command run locally)
+- Pushing to `yostai/HealthOS-Sales` → Netlify auto-deploys from there
+- Pushing to `yostai/HealthOS-Installer` (version control / record keeping)
+- Pushing to `yostai/HealthOS-Clean` → GitHub Actions auto-deploys to Lightsail
+
+**Paul does** (actions that require external system access Claude doesn't have):
+- Upload the rebuilt `healthos-installer.zip` to S3 (AWS Console or CLI)
+- Modify Make scenarios (Make account access required)
+
+**Auto-happens** (no action required from either):
+- Netlify deploys after every push to `yostai/HealthOS-Sales`
+- GitHub Actions deploys to Lightsail after every push to `yostai/HealthOS-Clean`
+
+### Change Playbooks
+
+**When `validate-code.js` or download page changes:**
+1. Claude edits files in `HealthOS-Sales/`
+2. Paul approves → Claude commits + pushes to `yostai/HealthOS-Sales`
+3. Netlify auto-deploys ✓
+
+**When `INSTALL.md`, scripts, or any installer file changes:**
+1. Claude edits files in `HealthOS-Installer/`
+2. Claude rebuilds ZIP: `cd /tmp && zip -r healthos-installer.zip "HealthOS-Installer/" --exclude "*/\.git/*" ...`
+3. ⚠️ **Paul uploads the ZIP to S3** (replaces existing `healthos-installer.zip`) — **customers run the old installer until this is done**
+4. Paul approves git push → Claude commits + pushes to `yostai/HealthOS-Installer`
+
+**When `HealthOS-Setup-Guide.html` changes:**
+1. Claude edits `HealthOS-Installer/HealthOS-Setup-Guide.html` (source of truth)
+2. Claude copies to `HealthOS-Sales/setup-guide.html`
+3. Paul approves → Claude pushes both repos
+4. Netlify auto-deploys the updated guide ✓
+
+**When Make scenarios need changes:**
+1. Paul updates the scenario in Make directly
+2. No code changes required unless webhook URLs change (update `installer-config.txt` if so)
+
+---
 
 ## ⚠️ SINGLE SOURCE OF TRUTH
 
@@ -15,9 +74,32 @@ All changes go here. All ZIPs are built from here. Do not look for, create, or p
 ```
 HealthOS-Installer/HealthOS-Setup-Guide.html  ← single source of truth
 ```
-When this file is updated, copy it to `outputs/healthos-sales/setup-guide.html` and push both repos. Do not edit `setup-guide.html` in the healthos-sales repo directly — always edit the installer copy first.
+When this file is updated, copy it to `HealthOS-Sales/setup-guide.html` and push both repos. Do not edit `setup-guide.html` in the HealthOS-Sales repo directly — always edit the installer copy first.
 
-The `images/` folder is also shared. If any image is added or changed in `HealthOS-Installer/images/`, copy it to `outputs/healthos-sales/images/` as well.
+The `images/` folder is also shared. If any image is added or changed in `HealthOS-Installer/images/`, copy it to `HealthOS-Sales/images/` as well.
+
+---
+
+## ⚠️ CRITICAL — ZIP Must Be Rebuilt After Any Installer Change
+
+**The S3 ZIP is what customers actually download and run. It is NOT updated automatically.**
+
+Pushing to `yostai/HealthOS-Installer` does NOT update the customer ZIP. Changing `INSTALL.md`, any script, or any installer file only takes effect for customers after:
+1. The ZIP is rebuilt from this folder
+2. Paul uploads it to S3 (replaces the existing `healthos-installer.zip`)
+
+**If you skip this, customers run the old installer.** Changes to `INSTALL.md` — including security gates like the download code validation — will be completely absent from what customers execute.
+
+This has caused at least one live incident (2026-04-16): download code gate was implemented in INSTALL.md but ZIP was never rebuilt, so customers downloaded and ran the old installer without the gate.
+
+**Every time any of these files change, the ZIP must be rebuilt:**
+- `INSTALL.md`
+- Any file in `scripts/`
+- `installer-config.txt`
+- `install-state.json`
+- `CLAUDE.md` (installer copy)
+- `README.md`
+- `.claude/commands/install.md`
 
 ---
 
@@ -25,32 +107,121 @@ The `images/` folder is also shared. If any image is added or changed in `Health
 
 How the installer reaches customers and how updates get published.
 
+**There are two separate GitHub repos and two separate deployment targets:**
+
 ```
-GitHub: yostai/HealthOS-Installer
+GitHub: yostai/HealthOS-Sales
     → Netlify auto-deploys on every push
-    → Serves: HealthOS-Setup-Guide.html (online instructions)
-    → Serves: download-page.html (customer download page with ?code= link)
+    → Live URL: https://startling-biscuit-e614db.netlify.app
+    → Serves: download-page.html (code-gated customer download page)
+    → Serves: setup-guide.html (visual setup instructions)
+    → Runs: netlify/functions/validate-code.js (serverless download gate)
+    → Local copy: /Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Sales
+
+GitHub: yostai/HealthOS-Installer (this workspace)
+    → NOT connected to Netlify — source of truth for the installer only
+    → Changes here require manual ZIP rebuild + S3 upload to reach customers
 
 S3 bucket
-    → Holds: health-installer.zip (the installer customers actually download)
-    → Customers reach it via the Netlify download page link
-
-Customer purchase flow:
-    Stripe purchase → email with download link
-        → Netlify download-page.html?code=...
-        → Download link → pulls health-installer.zip from S3
-        → Customer unzips, opens in Claude desktop, runs /install
+    → Holds: healthos-installer.zip (the installer customers download)
+    → URL generated on-demand as a signed URL by validate-code.js (1-hour expiry)
+    → Direct S3 URL is never exposed to customers
 ```
 
-**Two separate update actions are required when the installer changes:**
+**Three separate update actions are required when things change:**
 
 | What changed | Action required |
 |---|---|
-| `HealthOS-Setup-Guide.html` (online instructions) | Commit + push to `yostai/HealthOS-Installer` → Netlify auto-deploys |
-| Any script, `INSTALL.md`, or any file inside the ZIP | Rebuild `/tmp/healthos-installer.zip` → upload to S3 |
-| Both | Do both |
+| `HealthOS-Setup-Guide.html` (visual guide) | 1. Edit in `HealthOS-Installer/` (source of truth) → 2. Copy to `HealthOS-Sales/setup-guide.html` → 3. Push `yostai/HealthOS-Sales` → Netlify auto-deploys |
+| `download-page.html` or `validate-code.js` | Edit in `HealthOS-Sales/` → push `yostai/HealthOS-Sales` → Netlify auto-deploys |
+| Any script, `INSTALL.md`, or any file in the installer | Rebuild `healthos-installer.zip` → upload to S3 |
 
-Pushing to GitHub does NOT update what customers download. Uploading to S3 does NOT update the online instructions. They are independent.
+Pushing to `yostai/HealthOS-Installer` does NOT update anything customer-facing. Only `yostai/HealthOS-Sales` pushes trigger Netlify.
+
+---
+
+## HealthOS-Sales Customer Site
+
+**What it is:** The customer-facing web property. Handles everything from purchase to download hand-off. Completely separate from the installer codebase.
+
+**Local path:** `/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Sales`
+**GitHub:** `yostai/HealthOS-Sales`
+**Netlify URL:** `https://startling-biscuit-e614db.netlify.app`
+
+**Files:**
+
+| File | Purpose |
+|---|---|
+| `download-page.html` | Customer-facing download page. Accepts `?code=` URL param (auto-fills input). Calls `validate-code.js` on submit. On success: triggers ZIP download + shows setup guide link. |
+| `setup-guide.html` | Visual setup instructions. Copied from `HealthOS-Installer/HealthOS-Setup-Guide.html` — do not edit here directly. |
+| `netlify/functions/validate-code.js` | Serverless Netlify function. Validates download code against Airtable, checks expiry + download count, generates a signed S3 URL (1-hour expiry). Returns `{ url: signedUrl }` on success. |
+| `images/` | UI screenshots shared with the installer setup guide. |
+
+**Airtable Licenses table** (used by `validate-code.js` and Make webhooks):
+
+| Field | Type | Purpose |
+|---|---|---|
+| `Code` | Text | The download code (UUID format) |
+| `Status` | Text | `active` / `inactive` — set by Make |
+| `Expires At` | Date | Optional expiry date — checked by validate-code.js |
+| `Downloads` | Number | Count of successful installs — incremented by Make INCREMENT webhook |
+| `MaxDownloads` | Number | Per-license install limit — used by validate-code.js instead of hardcoded limit |
+
+**What `validate-code.js` does NOT do:**
+- Does not increment the `Downloads` counter (the installer handles this at install completion via Make)
+- Does not check `Status` field (Make's CONFIRM webhook handles status; Airtable may not update Status on expiry)
+
+---
+
+## Complete Purchase-to-Install Flow
+
+```
+1. Customer completes Stripe purchase
+       ↓
+2. Stripe fires webhook → Make scenario (PY HealthOS Purchase)
+       → Creates new record in Airtable Licenses table
+         (Code = UUID, Status = active, MaxDownloads = 3, Expires At = +90 days)
+       → Sends customer email with download link:
+         https://startling-biscuit-e614db.netlify.app/download-page.html?code={uuid}
+       ↓
+3. Customer opens download link in browser
+       → download-page.html loads, auto-fills code from ?code= param
+       → Customer clicks "Download Installer"
+       ↓
+4. validate-code.js (Netlify function) runs
+       → Looks up code in Airtable
+       → Checks: code exists / not expired / Downloads < MaxDownloads
+       → Generates signed S3 URL (1-hour expiry)
+       → Returns { url: signedUrl } to browser
+       ↓
+5. Browser triggers download of healthos-installer.zip from S3
+       → Customer unzips, opens folder in Claude desktop, runs /install
+       ↓
+6. INSTALL.md Phase 0 Step 1 — Second validation gate (installer-side)
+       → Claude prompts for download code
+       → Calls MAKE_CONFIRM_WEBHOOK (read-only) with the code
+       → Make looks up Airtable: returns { status, reason, downloads, max }
+       → If status = "ok": installation proceeds
+       → If status = "deny": installation stops with reason shown to customer
+       ↓
+7. Install proceeds through Phases 1–7
+       ↓
+8. Install Complete — increment call (fire-and-forget)
+       → Claude calls MAKE_INCRDOWNLOADS_WEBHOOK with the code
+       → Make increments Downloads counter in Airtable
+       → Install outcome is NOT gated on this succeeding
+```
+
+**Two-layer gate architecture:**
+
+| Layer | Where | What it checks | What it controls |
+|---|---|---|---|
+| Layer 1 — Download Gate | Netlify `validate-code.js` | Code exists, not expired, Downloads < MaxDownloads | Access to the installer ZIP |
+| Layer 2 — Install Gate | `INSTALL.md` Phase 0 via Make CONFIRM | Code status (active/inactive/expired/limit) | Whether installation actually proceeds |
+
+A customer who downloads the ZIP but doesn't complete install is not counted. Only successful installs increment the counter.
+
+---
 
 ### ZIP Build — Include/Exclude List
 
@@ -74,21 +245,20 @@ Built from: `/Users/pyost/PY Clients/Yost Advantage Inc/HealthOS/HealthOS-Instal
 
 ## What This Workspace Is
 
-This is the **development copy** of the HealthOS Installer — the place where changes are made, tested, and tracked before being ported to the customer-facing distribution copy.
+This is the **source workspace** for the HealthOS Installer — the place where all changes are made, tested, and tracked. The customer ZIP is built from here and uploaded to S3.
 
 **Do not confuse with:**
-- `module-installs/healthos-installer/` — the distribution copy. What goes into the S3 ZIP customers download. Must stay clean, tested, and customer-ready.
-- `yostai/HealthOS-Installer` on GitHub — the remote for *this* dev workspace.
+- `yostai/HealthOS-Sales` on GitHub — the customer-facing Netlify site (download page, validate-code.js, setup guide). Completely separate repo. Local copy: `HealthOS-Sales/`.
+- `yostai/HealthOS-Installer` on GitHub — the remote for *this* dev workspace. Not connected to Netlify.
 
 **Change flow:**
 ```
 HealthOS-Installer/ (this workspace — dev)
     → changes made + tested here
-    → ported manually to module-installs/healthos-installer/
     → ZIP rebuilt → uploaded to S3 (customer download)
 ```
 
-Changes in this workspace do NOT automatically appear in the customer ZIP. Porting is a deliberate manual step.
+Changes in this workspace do NOT automatically appear in the customer ZIP. ZIP rebuild and S3 upload are deliberate manual steps.
 
 ---
 
@@ -120,7 +290,8 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 | Phase | What happens | Script |
 |---|---|---|
 | Pre-Install Steps | Telegram, Anthropic key, AWS account — interactive, one at a time | None |
-| Phase 0 | Instance name, read GitHub URL from config, init state file | None |
+| Phase 0 Step 1 | Download code validation via Make CONFIRM webhook — gate before any install work | None (curl) |
+| Phase 0 | Instance name, read GitHub URL from config, init state file (includes `download_code`) | None |
 | Phase 1 | Mac preflight: check AWS CLI, verify credentials | `01-preflight.sh` |
 | Human Step 2 | User creates IAM user + access key in AWS Console | None |
 | Phase 2 | Lightsail instance, SSH key, static IP, SSH config | `02-aws.sh` |
@@ -130,9 +301,9 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 | Phase 5 | apt update/upgrade, base packages, swap, reboot | `05-server-a.sh` |
 | Phase 6 | Node.js, Claude Code, Python venv, crontab, systemd | `06-server-b.sh` |
 | Phase 7 | 13-point verification suite + Telegram confirmation | `07-verify.sh` |
-| Complete | Completion message, write install log | None |
+| Complete | Fire-and-forget increment via Make INCREMENT webhook, completion message, write install log | None (curl) |
 
-**Note:** This dev copy INSTALL.md says "13 checks" in Phase 7. The distribution copy still says "11 checks" — not yet ported.
+**Note:** This workspace's INSTALL.md has 13 checks in Phase 7. The customer ZIP may have fewer if it hasn't been rebuilt recently — see Dev vs. Customer ZIP table below.
 
 ---
 
@@ -141,7 +312,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 ### `scripts/01-preflight.sh`
 **When:** Phase 1
 **What it does:** Checks AWS CLI installed, checks `~/.aws/` credentials exist, calls `aws sts get-caller-identity` to validate. If AWS CLI missing, downloads the `.pkg` and instructs user to install (requires sudo — cannot be automated). Outputs `PREFLIGHT_OK=true` and `AWS_ACCOUNT_ID` which Claude uses to derive the backup bucket name.
-**Identical to distribution copy.**
+**In customer ZIP:** Yes (as of last ZIP build).
 
 ---
 
@@ -150,7 +321,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **What it does:** Creates Lightsail SSH key pair (`.pem` → `~/.ssh/`), creates Lightsail instance (Ubuntu 24.04, 1GB, us-east-1a), waits for running state, allocates + attaches static IP, closes port 80, writes SSH config entry, waits for SSH.
 **Outputs:** `STATIC_IP`, `PEM_PATH`, `SSH_HOST`, `INSTANCE_NAME`
 **Idempotent:** Every creation step guards "already exists."
-**Identical to distribution copy.**
+**In customer ZIP:** Yes (as of last ZIP build).
 
 ---
 
@@ -159,7 +330,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **What it does:** Creates S3 backup bucket (public access blocked), creates IAM backup user, attaches `AmazonS3FullAccess` policy, creates access key.
 **Robustness fix (2026-04-08):** Before creating access key, checks existing key count. If 2 exist (IAM limit), auto-deletes the oldest. User never sees `LimitExceeded` on resume.
 **Outputs:** `S3_BUCKET`, `AWS_BACKUP_KEY_ID`, `AWS_BACKUP_SECRET`
-**Differs from distribution copy:** Distribution copy lacks the IAM key auto-delete guard.
+**In customer ZIP:** Missing the IAM key auto-delete guard — not yet included in a ZIP build.
 
 ---
 
@@ -167,7 +338,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **When:** Phase 3B
 **What it does:** Calls Telegram `getUpdates` API, parses JSON to find a group chat ID (negative number), retries 3× with 10s waits. Calls `getMe` for bot @username.
 **Outputs:** `TELEGRAM_GROUP_ID`, `BOT_USERNAME`
-**Identical to distribution copy.**
+**In customer ZIP:** Yes (as of last ZIP build).
 
 ---
 
@@ -175,7 +346,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **When:** Phase 4
 **What it does:** Installs git on server if missing, clones HealthOS from GitHub (URL from session memory — read from `installer-config.txt` in Phase 0), writes `.env` to server via SSH heredoc, `chmod 600`, updates backup script with bucket name, verifies 5 key files present.
 **URL quoting fix (2026-04-06):** `$GITHUB_REPO_URL` assigned to `REPO_URL` inside the remote shell string — prevents early quote termination if token contains shell-special characters.
-**Both copies have this fix.**
+**In customer ZIP:** Yes (as of last ZIP build).
 
 ---
 
@@ -184,7 +355,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **What it does:** `apt update` + `apt upgrade`, installs base packages (Python 3.12 venv, build tools, Pango/GDK for Playwright, curl, wget, awscli), creates 2GB swap file, reboots, waits for SSH.
 **Robustness fix (2026-04-08):** Swap creation wrapped in `if [ ! -f /swapfile ]` — idempotent on resume, prints SKIP instead of failing.
 **Outputs:** `SERVER_A_OK=true`
-**Differs from distribution copy:** Distribution copy lacks swap guard.
+**In customer ZIP:** Missing swap guard — not yet included in a ZIP build.
 
 ---
 
@@ -199,7 +370,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 
 **Outputs:** `SERVER_B_OK=true`
 **Named `06-server-b.sh`** (was `05-server-b.sh` — renumbered 2026-04-08 to match phase number).
-**Differs significantly from distribution copy** (`05-server-b.sh`): distribution lacks Node.js pipe fix, auto-retry, and 60s wait.
+**In customer ZIP:** Missing Node.js pipe fix, auto-retry, and 60s bot wait — not yet included in a ZIP build. ZIP copy still named `05-server-b.sh`.
 
 ---
 
@@ -226,7 +397,7 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **Check 12 (Telegram):** Sends `sendMessage` API call directly — no agent, no cost. Message: "✅ HealthOS is installed and connected. Congratulations on your new HealthOS Coach. When you are ready to set up your coach, please type 'setup' here." Validates token + group ID connectivity and gives customer visible proof.
 
 **Named `07-verify.sh`** (was `06-verify.sh` — renumbered 2026-04-08).
-**Differs significantly from distribution copy** (`06-verify.sh` with 11 checks): distribution lacks swap check (9), has combined __main__.py check instead of split (10+11), uses `health_notify.py --mode morning` for Telegram test instead of direct `sendMessage`.
+**In customer ZIP:** Missing swap check, split __main__ checks, and direct sendMessage — not yet included in a ZIP build. ZIP copy still named `06-verify.sh` with 11 checks and uses `health_notify.py` for Telegram test.
 
 ---
 
@@ -238,21 +409,21 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 3. Calls `aws lightsail reboot-instance`
 4. Polls instance state every 10s for up to 100 seconds, reports when running
 **Uses:** AWS credentials already configured during install (`~/.aws/credentials`)
-**Not present in distribution copy.**
+**Not included in customer ZIP** — dev/internal only.
 
 ---
 
 ### `INSTALLER-DEV-NOTES.md`
 **Role:** Issue tracker for the installer. Each known bug or improvement is documented with: what happens to the user, auto-recovery potential, proposed solution, and status (Open/Resolved).
 **Not a customer-facing file** — dev reference only.
-**Not present in distribution copy.**
+**Not included in customer ZIP** — dev/internal only.
 
 ---
 
 ### `CHANGELOG.md`
 **Role:** Running log of changes made to this dev workspace, most recent at top.
 **Not a customer-facing file** — dev reference only.
-**Not present in distribution copy** (distribution has its own CHANGELOG created 2026-04-13).
+**Not included in customer ZIP** — dev/internal only. Customer ZIP has its own CHANGELOG (created 2026-04-13).
 
 ---
 
@@ -260,12 +431,12 @@ Claude-orchestrated setup that deploys a personal AI health coach onto the custo
 **Role:** Reference data for the HealthOS onboarding interview — full branching logic for diet types, workout preferences, mental health categories, complications, motivation styles, and check-in schedule options.
 **Used by:** The onboarding interview agent in HealthOS-TEST, not directly by the installer scripts.
 **Why it's here:** Kept alongside the installer workspace for reference during onboarding-related installer development. Mirrors the copy in `HealthOS-TEST/onboarding/reference/`.
-**Not present in distribution copy.**
+**Not included in customer ZIP** — dev/internal only.
 
 ---
 
 ### `install-state.json`
-**Role:** Template for per-install state file. Copied at Phase 0 to `install-state-{instance-name}.json`. Tracks completed phases and non-secret config values.
+**Role:** Template for per-install state file. Copied at Phase 0 to `install-state-{instance-name}.json`. Tracks completed phases and non-secret config values, including `download_code` (first field in config section — persists code for resume validation).
 **Identical in both copies.**
 
 ---
@@ -304,9 +475,17 @@ Pre-Install Steps (interactive):
     → Anthropic API key validated via curl to api.anthropic.com
     → AWS account confirmed
 
+Phase 0 Step 1 — Download code gate:
+    → Claude prompts for download code
+    → Reads MAKE_CONFIRM_WEBHOOK from installer-config.txt
+    → POSTs code to Make CONFIRM webhook (read-only Airtable lookup)
+    → Response: { status, reason, downloads, max }
+    → status = "ok": proceed  |  status = "deny": stop + show reason
+    → status = anything else: stop + show "validation failed" message
+
 Phase 0:
     → Claude reads installer-config.txt → GITHUB_REPO_URL loaded
-    → Instance name collected, state file initialized
+    → Instance name collected, state file initialized (download_code written)
 
 Phase 1: 01-preflight.sh
     → AWS CLI confirmed, credentials valid
@@ -341,6 +520,8 @@ Phase 7: 07-verify.sh
     → Telegram confirmation message sent to customer's group
 
 Install Complete:
+    → Claude fires MAKE_INCRDOWNLOADS_WEBHOOK (fire-and-forget, > /dev/null)
+    → Make increments Downloads counter in Airtable Licenses table
     → Claude shows completion message with Telegram /setup instruction
     → install-log-{name}.md written
 ```
@@ -351,8 +532,12 @@ Install Complete:
 
 | Data store | Contents | Written by | Read by |
 |---|---|---|---|
-| `installer-config.txt` (gitignored) | GitHub PAT in repo URL | Paul manually | Claude (Phase 0) |
-| `install-state-{name}.json` | Completed phases, non-secret config | Claude (each phase) | Claude (resume) |
+| `installer-config.txt` (gitignored) | GitHub PAT in repo URL, Make webhook URLs | Paul manually | Claude (Phase 0, Install Complete) |
+| `install-state-{name}.json` | Completed phases, non-secret config including `download_code` | Claude (each phase) | Claude (resume) |
+| Airtable Licenses table | Code, Status, Expires At, Downloads, MaxDownloads | Make (purchase), Make INCREMENT webhook | `validate-code.js` (download gate), Make CONFIRM webhook (install gate) |
+| Make CONFIRM webhook | Read-only Airtable lookup → returns `{ status, reason, downloads, max }` | n/a (webhook endpoint) | INSTALL.md Phase 0 Step 1 |
+| Make INCREMENT webhook | Increments Airtable `Downloads` field for a given code | n/a (webhook endpoint) | INSTALL.md Install Complete |
+| S3 bucket (installer) | `healthos-installer.zip` | Paul manually (ZIP rebuild) | `validate-code.js` (generates signed URL) |
 | `~/.aws/credentials` (Mac) | Installer IAM credentials | Claude + aws configure | All AWS scripts |
 | `~/.ssh/{key}.pem` (Mac) | Lightsail SSH private key | `02-aws.sh` | All server SSH scripts |
 | `~/.ssh/config` (Mac) | SSH alias entry | `02-aws.sh` | Claude, user |
@@ -362,41 +547,43 @@ Install Complete:
 
 ---
 
-## Dev vs. Distribution Copy — Differences
+## Dev Workspace vs. Customer ZIP — Differences
 
-This table shows what exists in this dev copy vs. the distribution copy (`module-installs/healthos-installer/`). Items marked **not ported** need to be manually ported before the next ZIP build.
+This table tracks what's in this workspace vs. what was last included in the customer ZIP on S3. Items marked **needs ZIP rebuild** will not reach customers until the ZIP is rebuilt and uploaded.
 
-| Area | Dev Copy | Distribution Copy | Status |
+⚠️ The ZIP was last rebuilt before 2026-04-15. All changes since then (including the download code gate) require a ZIP rebuild.
+
+| Area | This Workspace | Last Customer ZIP | Status |
 |---|---|---|---|
-| `03-backup-infra.sh` | IAM key auto-delete guard | No guard | **Not ported** |
-| `05-server-a.sh` | Swap existence guard | No guard | **Not ported** |
-| `06-server-b.sh` | Node.js pipefail + auto-retry, 60s bot wait | No fix, 15s wait | **Not ported** |
-| `07-verify.sh` / `06-verify.sh` | 13 checks, swap check, split __main__ checks, direct sendMessage | 11 checks, combined check, health_notify | **Not ported** |
-| Script numbering | `06-server-b.sh`, `07-verify.sh` | `05-server-b.sh`, `06-verify.sh` | Distribution uses old names |
-| `reboot_healthos.py` | Present | Absent | Not intended for distribution |
-| `INSTALLER-DEV-NOTES.md` | Present | Absent | Dev-only |
-| `CHANGELOG.md` | Dev changelog | Distribution changelog (created 2026-04-13) | Separate files, separate histories |
-| `categories-preferences-data.txt` | Present | Absent | Dev reference only |
-| `INSTALL.md` completion screen | Original (SSH command present, no /setup) | Updated (SSH removed, /setup added) | **Distribution is ahead here** |
-| `INSTALL.md` version | 1.0 (header) | 0.4.1 | **Distribution is ahead here** |
-| `VERSION` file | Absent | Present (0.4.1) | **Not ported** |
+| `INSTALL.md` Phase 0 Step 1 | Download code gate present | Absent | **Needs ZIP rebuild** |
+| `install-state.json` | `download_code` field present | Absent | **Needs ZIP rebuild** |
+| `installer-config.txt` | CONFIRM + INCREMENT webhook URLs present | Absent | **Needs ZIP rebuild** |
+| `03-backup-infra.sh` | IAM key auto-delete guard | No guard | **Needs ZIP rebuild** |
+| `05-server-a.sh` | Swap existence guard | No guard | **Needs ZIP rebuild** |
+| `06-server-b.sh` | Node.js pipefail + auto-retry, 60s bot wait | No fix, 15s wait | **Needs ZIP rebuild** |
+| `07-verify.sh` | 13 checks, direct sendMessage | 11 checks (`06-verify.sh`), health_notify | **Needs ZIP rebuild** |
+| Script numbering | `06-server-b.sh`, `07-verify.sh` | `05-server-b.sh`, `06-verify.sh` | ZIP uses old names |
+| `reboot_healthos.py` | Present | Absent | Dev/internal only — intentional |
+| `INSTALLER-DEV-NOTES.md` | Present | Absent | Dev-only — intentional |
+| `CHANGELOG.md` | Dev changelog | Separate ZIP changelog (2026-04-13) | Separate histories — intentional |
+| `categories-preferences-data.txt` | Present | Absent | Dev reference only — intentional |
 | `reference/system-architecture.md` | This file | Present | Both have architecture docs |
 
 ---
 
 ## Architectural Notes
 
-### This workspace receives changes first
-All installer improvements are made and tested here. The distribution copy is a deliberate, curated snapshot. Never update the distribution copy directly without first verifying in this workspace.
+### All changes go here first
+All installer improvements are made and tested in this workspace. The customer ZIP is a snapshot of this workspace at the time of the last ZIP build. Never hand-edit the ZIP — always change the source here, then rebuild.
 
 ### installer-config.txt is gitignored — always
 The GitHub PAT must never be committed. `.gitignore` excludes it. If it ever appears in a `git status` as a tracked file, something has gone wrong. Verify the `.gitignore` is present and working before any commit.
 
-### Two script numbering schemes coexist
-This dev copy uses `06-server-b.sh` and `07-verify.sh` (renumbered 2026-04-08 to match phase numbers). The distribution copy still uses `05-server-b.sh` and `06-verify.sh`. When porting changes, don't rename files in the distribution copy unless also updating all references in its `INSTALL.md`.
+### Two script numbering schemes exist
+This workspace uses `06-server-b.sh` and `07-verify.sh` (renumbered 2026-04-08 to match phase numbers). The last customer ZIP still uses `05-server-b.sh` and `06-verify.sh` (old names). A ZIP rebuild will bring the naming in sync.
 
 ### The Telegram verify check changed from agent to API
-Before 2026-04-06, check 10/12 ran `health_notify.py --mode morning` via SSH — a live Claude agent call that cost ~$0.10 and sent an uncontrolled coaching message as a side effect of verification. Now it calls the Telegram `sendMessage` API directly. No agent, no cost, controlled message. The distribution copy has not received this fix — it still uses `health_notify.py`.
+Before 2026-04-06, check 10/12 ran `health_notify.py --mode morning` via SSH — a live Claude agent call that cost ~$0.10 and sent an uncontrolled coaching message as a side effect of verification. Now it calls the Telegram `sendMessage` API directly. No agent, no cost, controlled message. The last customer ZIP has not received this fix.
 
 ### reboot_healthos.py is a post-install maintenance tool
 Not part of the install flow. Reads the install state file to find the instance name automatically. Intended for situations where the Lightsail instance needs a reboot (e.g., after a HealthOS update). Not distributed to customers.
@@ -405,12 +592,12 @@ Not part of the install flow. Reads the install state file to find the instance 
 
 ## What Lives Where — Quick Reference
 
-| Concern | File |
+| Concern | File / Location |
 |---|---|
 | Install trigger | `.claude/commands/install.md` |
 | Full install orchestration | `INSTALL.md` |
 | Install state template | `install-state.json` |
-| GitHub PAT / repo URL | `installer-config.txt` (gitignored) |
+| GitHub PAT / repo URL / Make webhook URLs | `installer-config.txt` (gitignored) |
 | Known issues + improvement tracker | `INSTALLER-DEV-NOTES.md` |
 | Dev changelog | `CHANGELOG.md` |
 | Onboarding reference data | `categories-preferences-data.txt` |
@@ -423,7 +610,13 @@ Not part of the install flow. Reads the install state file to find the instance 
 | Node.js + Claude Code + Python + systemd | `scripts/06-server-b.sh` |
 | 13-point verification suite | `scripts/07-verify.sh` |
 | Post-install Lightsail reboot | `scripts/reboot_healthos.py` |
-| Visual setup guide | `HealthOS-Setup-Guide.html` |
+| Visual setup guide (source of truth) | `HealthOS-Setup-Guide.html` |
 | UI screenshots | `images/` |
 | Customer-facing README | `README.md` |
 | Claude workspace orientation | `CLAUDE.md` |
+| Customer download page | `HealthOS-Sales/download-page.html` (via `yostai/HealthOS-Sales`) |
+| Download code validation function | `HealthOS-Sales/netlify/functions/validate-code.js` |
+| Setup guide (Netlify copy — do not edit directly) | `HealthOS-Sales/setup-guide.html` |
+| Airtable Licenses table | External — Make + validate-code.js read/write |
+| Make CONFIRM webhook (install gate) | External — URL in `installer-config.txt` |
+| Make INCREMENT webhook (downloads counter) | External — URL in `installer-config.txt` |
