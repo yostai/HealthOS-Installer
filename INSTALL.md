@@ -21,6 +21,7 @@ You are driving this install. Read these rules and follow them exactly.
 7. **Credentials are sacred.** Never print full credential values in your responses — reference by name only (e.g., "Anthropic key: saved"). Credentials are written to `.env` on the server only.
 8. **Collect all inputs in Phase 0 before starting any AWS work.**
 9. **All scripts are in `scripts/`.** Run them with `bash scripts/XX.sh`.
+10. **Every time you direct the user to sign in to the AWS Console**, include this warning: ⚠️ "If AWS shows you an 'IAM user sign in' page — click **'Sign in using root user email'** at the bottom instead."
 
 ---
 
@@ -198,7 +199,13 @@ Ask only:
 
 > "Do you already have an AWS account?"
 
-- **Yes** → "Great — we'll use that. One heads-up: when you go to sign in, AWS may show you an 'IAM user sign in' page. If you see that, click **'Sign in using root user email'** at the bottom instead — that's the one you want. Go ahead and sign in and let me know when you're in the AWS Console."
+- **Yes** → Tell the user:
+
+  > "Great — we'll use that. Go to **aws.amazon.com** and sign in.
+  >
+  > ⚠️ **Important:** AWS may show you an 'IAM user sign in' page. If you see that, look for **'Sign in using root user email'** at the bottom of the page and click that instead. That's the account you want — not the IAM one.
+  >
+  > Let me know when you're in the AWS Console."
 - **No** → Give these instructions and wait for confirmation:
 
 ---
@@ -340,12 +347,14 @@ There's a small hiccup — before Lightsail will work, your AWS account needs tw
 
 **Step 1 — Upgrade to a paid AWS plan** (required to access Lightsail)
 1. Go to **https://console.aws.amazon.com** and sign in
+   ⚠️ **If AWS shows you an 'IAM user sign in' page — click 'Sign in using root user email' at the bottom instead.**
 2. In the search bar, type **"Lightsail"** and click it
 3. If you see a page saying *"There might be a problem with your access to Lightsail"*, click **"Upgrade plan"** and follow the steps to add a payment method
 4. Once upgraded, come back here and let me know
 
 **Step 2 — Activate Lightsail** (takes about 1 minute)
 1. After upgrading, go back to the Lightsail page at **https://console.aws.amazon.com**
+   ⚠️ **If AWS shows you an 'IAM user sign in' page — click 'Sign in using root user email' at the bottom instead.**
 2. Click **"Let's get started"** or **"Create instance"** — you don't need to finish creating one, just clicking starts the activation
 3. Let me know when done and I'll retry
 
