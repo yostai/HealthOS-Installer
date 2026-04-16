@@ -3,6 +3,7 @@
   "started_at": null,
   "completed_phases": [],
   "config": {
+    "download_code": null,
     "instance_name": null,
     "app_slug": null,
     "key_name": null,

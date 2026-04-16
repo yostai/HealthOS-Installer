@@ -3,6 +3,42 @@
 
 ---
 
+## 2026-04-16 — v0.4.16 (continued)
+
+### EULA disclaimer in installer + EULA file created
+
+#### `INSTALL.md` — EULA acknowledgment gate after download code validation
+After download code validates as `ok`, Claude now presents a required EULA acknowledgment before proceeding:
+- Displays 3 key points: not medical advice, no guaranteed results, data lives in customer's own accounts
+- Links to `https://yost.ai/healthos-eula` for full terms
+- Requires customer to type "I agree" before installation proceeds
+- If customer has questions, Claude answers then re-prompts for "I agree"
+- Creates a second acceptance touchpoint independent of the purchase checkout flow
+
+#### `INSTALL.md` — Pre-install step sequencing (one at a time)
+Added ⚠️ stop-and-wait language to each Pre-Install Step heading to prevent Claude from bundling multiple questions into one message. Each step must be fully resolved before the next is mentioned.
+
+#### `INSTALL.md` — AWS sign-in warning (Behavior Rule #10)
+Added standing rule: every time Claude directs the user to sign in to the AWS Console, it must include: ⚠️ "If AWS shows you an 'IAM user sign in' page — click 'Sign in using root user email' at the bottom instead." Applied to Pre-Install Step 3 Yes path and Lightsail 403 fix steps.
+
+#### `HealthOS-Sales/healthos-eula.txt` — New file
+Full EULA for the HealthOS Lovable purchase page. Sections:
+- Not Medical Advice
+- No Guarantee of Results (new — individual results vary, explicit outcome list)
+- Limitation of Liability
+- Your Data Belongs to You (third-party platform responsibility)
+- License (personal, non-transferable)
+- Age Requirement (18+)
+- Entire Agreement
+- Severability
+- Governing Law (State of New Jersey)
+- Contact: support@yost.ai
+
+#### `reference/system-architecture.md` — EULA Accepted At field recommendation
+Added `EULA Accepted At` DateTime field to Airtable Licenses table schema (marked not yet implemented). Recommended: set by Make at purchase time to provide auditable proof of EULA acceptance tied to the specific license record.
+
+---
+
 ## 2026-04-16 — v0.4.16
 
 ### Download code gate + UI updates + system architecture cleanup

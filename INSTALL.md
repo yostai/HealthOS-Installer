@@ -1,7 +1,7 @@
 # HealthOS Cloud — INSTALL.md
 <!-- © 2026 Yost AI. All rights reserved. -->
 
-**Version:** 0.4.16 — Download code gate, Claude desktop UI updates
+**Version:** 0.4.16.1 — EULA acknowledgment gate, download code gate, Claude desktop UI updates
 **Installs:** HealthOS on AWS Lightsail (Ubuntu 24.04, 1GB RAM, static IP)
 **Human time:** ~20 minutes (new AWS account) or ~10 minutes (existing account)
 **Total time:** ~30 minutes
@@ -86,7 +86,21 @@ STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
 ```
 
 If `STATUS` is `ok`:
-- Tell the user: "Download code verified ✓ Let's get your health coach set up!"
+- Send this message exactly — no additions, no variations:
+
+> "Download code verified ✓
+>
+> Before we begin: by proceeding with this installation, you confirm that you have read and agreed to the HealthOS Terms of Use. If you need to review them, please visit https://yost.ai/healthos-eula before continuing.
+>
+> Key points:
+> • HealthOS is a personal wellness tool — not medical advice or a substitute for a doctor
+> • Individual results are not guaranteed
+> • Your health data lives in your own accounts (Anthropic, AWS, Telegram) — not ours
+>
+> Type **'I agree'** to proceed with installation, or ask any questions before we begin."
+
+- Wait for the user to type "I agree" (or clear equivalent). Do not proceed until they do.
+- If they have questions, answer them. Then re-prompt for "I agree" before continuing.
 - Hold `DOWNLOAD_CODE` in session memory. It will be written to the state file in Phase 0.
 - Proceed to Pre-Install Steps.
 

@@ -166,6 +166,7 @@ Pushing to `yostai/HealthOS-Installer` does NOT update anything customer-facing.
 | `Expires At` | Date | Optional expiry date — checked by validate-code.js |
 | `Downloads` | Number | Count of successful installs — incremented by Make INCREMENT webhook |
 | `MaxDownloads` | Number | Per-license install limit — used by validate-code.js instead of hardcoded limit |
+| `EULA Accepted At` | DateTime | ⚠️ **Not yet implemented.** Recommended: capture timestamp when customer completes purchase. Set by Make at purchase time alongside Code/Status. Provides auditable proof of EULA acceptance tied to the specific license record. |
 
 **What `validate-code.js` does NOT do:**
 - Does not increment the `Downloads` counter (the installer handles this at install completion via Make)
