@@ -110,17 +110,19 @@ If `STATUS` is empty or any value other than `ok` or `deny`: stop immediately. T
 
 ---
 
-## Pre-Install Steps (Interactive — One at a Time)
+## Pre-Install Steps
 
-Walk through these three steps one at a time. Complete each fully and get confirmation before moving to the next. Do not present all three at once.
+⚠️ **One step at a time. Send one message, wait for the user's response, fully resolve that step, then and only then move to the next. Do not mention step 2 while on step 1. Do not mention step 3 while on step 2. Do not bundle or preview what's coming next.**
 
 ---
 
 ### Pre-Install Step 1: Telegram
 
-Greet the user warmly. Then ask:
+⚠️ Send only this message. Do not mention the API key. Do not mention AWS. Stop and wait for the response.
 
-> "First things first — do you have Telegram installed on your phone or desktop?"
+Greet the user warmly, then ask only:
+
+> "First — do you have Telegram installed on your phone or desktop?"
 
 - **Yes** → "Perfect! We'll set up your health coach bot inside Telegram later. On to Step 2."
 - **No** → Give these instructions and wait for confirmation:
@@ -140,9 +142,11 @@ Wait for the user to confirm Telegram is installed before proceeding.
 
 ### Pre-Install Step 2: Anthropic API Key
 
-Ask:
+⚠️ Only begin this step after Telegram is confirmed. Send only this message. Do not mention AWS. Stop and wait for the response.
 
-> "Next — do you have an Anthropic API key? This is what lets your health coach use Claude's AI."
+Ask only:
+
+> "Do you have an Anthropic API key? This is what lets your health coach use Claude's AI."
 
 - **Yes** → "Great — go ahead and paste it now so I can verify it's working."
   - Validate immediately:
@@ -188,9 +192,11 @@ Wait for the user to paste and validate the key before proceeding. Store in sess
 
 ### Pre-Install Step 3: AWS Account
 
-Ask:
+⚠️ Only begin this step after the API key is validated. Send only this message. Stop and wait for the response.
 
-> "Last one before we dive in — do you already have an AWS account?"
+Ask only:
+
+> "Do you already have an AWS account?"
 
 - **Yes** → "Great — we'll use that. One heads-up: when you go to sign in, AWS may show you an 'IAM user sign in' page. If you see that, click **'Sign in using root user email'** at the bottom instead — that's the one you want. Go ahead and sign in and let me know when you're in the AWS Console."
 - **No** → Give these instructions and wait for confirmation:
