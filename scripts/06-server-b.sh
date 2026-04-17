@@ -113,35 +113,35 @@ ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
      aws configure set default.region us-east-1"
 echo "  OK: AWS credentials configured (~/.aws/credentials)"
 
-# --- Crontab (append with slug markers — idempotent) ---
-echo "--- Installing crontab entries for ${APP_SLUG}..."
+# --- Crontab (/etc/cron.d/ — one file per install) ---
+echo "--- Installing crontab for ${APP_SLUG} in /etc/cron.d/..."
 ssh $SSH_OPTS ubuntu@"$SERVER_IP" "
     APP_SLUG='${APP_SLUG}'
     CRON_SOURCE=\"/home/ubuntu/\${APP_SLUG}/scripts/crontab-healthos.txt\"
 
-    # Generate substituted entries: replace hardcoded paths with slug + shared venv
+    # Substitute slug and shared venv path into template
     CRON_CONTENT=\$(sed \
         -e \"s|/home/ubuntu/healthos/.venv/bin/python3|/home/ubuntu/.venv/bin/python3|g\" \
         -e \"s|/home/ubuntu/healthos|/home/ubuntu/\${APP_SLUG}|g\" \
         \"\$CRON_SOURCE\")
 
-    # Guard: ensure content was actually generated
     if [ -z \"\$CRON_CONTENT\" ]; then
-        echo \"ERROR: Failed to read crontab source at \$CRON_SOURCE\"
+        echo 'ERROR: Failed to read crontab source'
         exit 1
     fi
 
-    # Strip existing block for this slug (idempotent on resume)
-    EXISTING=\$(crontab -l 2>/dev/null || true)
-    STRIPPED=\$(echo \"\$EXISTING\" | awk \"/# BEGIN \${APP_SLUG}/{skip=1} /# END \${APP_SLUG}/{skip=0;next} !skip\")
-    if [ -n \"\$STRIPPED\" ]; then printf \"%s\\n\" \"\$STRIPPED\" | crontab -; fi
+    # Write to /etc/cron.d/ (root-owned, mode 644 — required by cron)
+    echo \"\$CRON_CONTENT\" | sudo tee /etc/cron.d/\${APP_SLUG} > /dev/null
+    sudo chmod 644 /etc/cron.d/\${APP_SLUG}
 
-    # Append new block
-    (crontab -l 2>/dev/null; echo \"# BEGIN \${APP_SLUG}\"; echo \"\$CRON_CONTENT\"; echo \"# END \${APP_SLUG}\") | crontab -
+    # Scoped sudoers rule — lets onboarding update this file without full sudo
+    echo \"ubuntu ALL=(root) NOPASSWD: /usr/bin/tee /etc/cron.d/\${APP_SLUG}\" | \
+        sudo tee /etc/sudoers.d/\${APP_SLUG}-cron > /dev/null
+    sudo chmod 440 /etc/sudoers.d/\${APP_SLUG}-cron
 "
 CRON_COUNT=$(ssh $SSH_OPTS ubuntu@"$SERVER_IP" \
-    "crontab -l | grep -v '^#' | grep -v '^\$' | wc -l | tr -d ' '")
-echo "  OK: $CRON_COUNT total active cron entries"
+    "grep -c '^[0-9*]' /etc/cron.d/${APP_SLUG} 2>/dev/null || echo 0")
+echo "  OK: $CRON_COUNT cron entries in /etc/cron.d/${APP_SLUG}"
 
 # --- systemd bot service ---
 echo "--- Installing and starting ${APP_SLUG}-bot systemd service..."

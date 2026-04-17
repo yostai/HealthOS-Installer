@@ -1,7 +1,7 @@
 # HealthOS Cloud — INSTALL.md
 <!-- © 2026 Yost AI. All rights reserved. -->
 
-**Version:** 0.4.16.1 — EULA acknowledgment gate, download code gate, Claude desktop UI updates
+**Version:** 0.4.17 — Cron migration to /etc/cron.d/ per install, shared venv Python path fix, dynamic backup workspace
 **Installs:** HealthOS on AWS Lightsail (Ubuntu 24.04, 1GB RAM, static IP)
 **Human time:** ~20 minutes (new AWS account) or ~10 minutes (existing account)
 **Total time:** ~30 minutes

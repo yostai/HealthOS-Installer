@@ -77,10 +77,10 @@ check "systemd: ${APP_SLUG}-bot active" \
     "ssh $SSH_OPTS ubuntu@$SERVER_IP 'sudo systemctl is-active ${APP_SLUG}-bot | grep -q active'" \
     "Run: ssh $SSH_ALIAS && sudo systemctl start ${APP_SLUG}-bot && sudo journalctl -u ${APP_SLUG}-bot -n 30"
 
-# 7. Crontab entries
-check "Crontab: 6+ entries installed" \
-    "ssh $SSH_OPTS ubuntu@$SERVER_IP 'crontab -l | grep -v \"^#\" | grep -v \"^$\" | wc -l | awk \"{exit (\\\$1 < 6)}\"'" \
-    "Re-run Phase 6 to append crontab entries for ${APP_SLUG}"
+# 7. Crontab entries in /etc/cron.d/
+check "Crontab: /etc/cron.d/${APP_SLUG} exists with 6+ entries" \
+    "ssh $SSH_OPTS ubuntu@$SERVER_IP 'test -f /etc/cron.d/${APP_SLUG} && grep -c \"^[0-9*]\" /etc/cron.d/${APP_SLUG} | awk \"{exit (\\\$1 < 6)}\"'" \
+    "Re-run Phase 6 to reinstall crontab for ${APP_SLUG} in /etc/cron.d/"
 
 # 8. .env exists with correct permissions
 check ".env exists with correct permissions" \

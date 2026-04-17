@@ -3,6 +3,47 @@
 
 ---
 
+## 2026-04-17 — Cron migration to /etc/cron.d/
+
+### Root cause: cron jobs never fired after onboarding
+Three bugs diagnosed from healthos-pyaitest03 post-onboarding:
+1. `write_crontab.py` generated `PYTHON={workspace}/.venv/bin/python3` — per-app venv does not exist; shared venv is at `/home/ubuntu/.venv`
+2. `backup_health_db.sh` had `WORKSPACE=/home/ubuntu/healthos` hardcoded — wrong for any non-default slug
+3. `write_crontab.py` used `crontab -` (full replace) — wipes other installs' cron entries on multi-install servers
+
+### Fix: migrate all cron jobs to /etc/cron.d/ — one file per install
+Each HealthOS install now has an isolated `/etc/cron.d/{slug}` file. Installer creates it; onboarding updates it. Multiple installs on the same server never interfere with each other.
+
+#### `HealthOS-Installer/scripts/06-server-b.sh` — Replace user-crontab block
+- Removed BEGIN/END user-crontab marker pattern
+- Now writes to `/etc/cron.d/${APP_SLUG}` via `sudo tee` (mode 644)
+- Installs scoped sudoers rule `/etc/sudoers.d/${APP_SLUG}-cron`: `ubuntu ALL=(root) NOPASSWD: /usr/bin/tee /etc/cron.d/${APP_SLUG}` — lets onboarding update the file without full sudo
+- One file per install; completely isolated
+
+#### `HealthOS-TEST/scripts/crontab-healthos.txt` — Template updated for /etc/cron.d/ format
+- Added `SHELL=/bin/bash` (required for `&&` in cron.d files)
+- Added `ubuntu` username field to every job line (required by /etc/cron.d/ format)
+- Fixed `PYTHON` path: `/home/ubuntu/.venv/bin/python3` (shared venv, not per-app)
+- Updated header comment: no longer says "install via crontab -e"
+
+#### `HealthOS-TEST/onboarding/write_crontab.py` — Full rewrite of install logic
+- Fixed `PYTHON` in `INFRA_CRON`: `/home/ubuntu/.venv/bin/python3` (was `{workspace}/.venv/...`)
+- Added `SHELL=/bin/bash` to generated crontab
+- Added `ubuntu` username field to all generated job lines
+- `install_crontab()` now writes to `/etc/cron.d/{slug}` via `sudo tee` + `chmod 644`
+- Slug derived from script's own path: `Path(__file__).resolve().parent.parent.name`
+- Clear error message if sudoers rule is missing (points to Phase 6)
+
+#### `HealthOS-TEST/scripts/backup_health_db.sh` — Dynamic workspace derivation
+- Replaced hardcoded `WORKSPACE=/home/ubuntu/healthos` with `WORKSPACE=$(cd "$(dirname "$0")/.." && pwd)`
+- Script resolves its own workspace from its location — works for any slug
+
+#### `HealthOS-Installer/scripts/07-verify.sh` — Check 7 updated
+- Now checks `/etc/cron.d/${APP_SLUG}` exists and has 6+ job lines
+- Was: `crontab -l | grep -c ...` — Now: `test -f /etc/cron.d/${APP_SLUG} && grep -c "^[0-9*]" ...`
+
+---
+
 ## 2026-04-16 — v0.4.16 (continued)
 
 ### EULA disclaimer in installer + EULA file created
